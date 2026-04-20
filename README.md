@@ -1,49 +1,168 @@
+<div align="center">
+
+<img src="apps/extension/public/icons/icon-128.png" width="96" alt="Defluff">
+
 # Defluff
 
-> Strip AI-generated fluff from email. Get the actual intent in 3–5 bullets.
+**AI wrote this email. Have AI read it.**
 
-Defluff detects corporate padding and AI-generated filler in incoming emails and extracts what the sender actually wants: the facts, the intent, the action items. One click, inside Gmail or Outlook. No servers, no tracking, your keys.
+Strip AI-generated padding from Gmail and Outlook into 3–5 bullets of actual intent.
+Zero servers, your keys, your models.
 
-## Why
+[![CI](https://github.com/FinAegis/defluff/actions/workflows/ci.yml/badge.svg)](https://github.com/FinAegis/defluff/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen.svg)](SECURITY.md)
+[![BYOK](https://img.shields.io/badge/keys-your%20own-orange.svg)](#providers)
 
-Email is drowning in AI-generated text that buries the real message under pleasantries, restated context, and "I hope this finds you well." Defluff inverts the workflow: instead of reading every word, you see a scannable list of what matters. Original email stays one click away.
+</div>
 
-## Architecture
+---
 
-- **Zero-retention, zero servers.** Your email never touches FinAegis infrastructure. The client calls your chosen LLM provider directly.
-- **Bring your own key (BYOK).** Configure an Anthropic, OpenAI, Gemini, or local (Ollama) key once. Each request goes straight from your browser to the provider you chose.
-- **Open source.** MIT licensed. Fork it, audit it, self-host the optional proxy if you need it.
+## What is this?
 
-## Deliverables
+Corporate email has become unreadable. Half of every message is AI-generated filler, restated context, and *"I hope this finds you well."*
 
-This is a pnpm monorepo.
+Defluff is a browser extension and Outlook add-in that replaces the body of an open email with 3–5 bullets of what the sender actually wants. One click. *"Show original"* is one click away.
 
-| Path | What it is | Status |
+The interesting part isn't the summarization — that's just an LLM call with a restrictive prompt. The interesting part is the **trust model**: there is no Defluff backend. Your email body and your API key never leave your browser for any infrastructure we operate. Each De-Fluff click goes straight from your browser to the LLM provider you picked. Zero retention isn't a policy, it's the architecture.
+
+---
+
+## How it works
+
+<table>
+<tr>
+<td align="center" width="33%">
+
+**1. Install**
+
+Chrome/Edge/Firefox extension,
+or Outlook Office.js add-in.
+
+</td>
+<td align="center" width="33%">
+
+**2. Configure**
+
+Click the icon, pick a provider,
+paste your key. That's it.
+
+</td>
+<td align="center" width="33%">
+
+**3. Defluff**
+
+Click the button on any email.
+Prose collapses into bullets.
+
+</td>
+</tr>
+</table>
+
+<sub>Before/after screenshot coming once we've tested against live Gmail — help us by trying it!</sub>
+
+---
+
+## Install
+
+> **Status:** pre-alpha. Store listings (Chrome Web Store / Edge / Firefox AMO / AppSource / ClawHub) arrive after the live-testing pass. Track progress in [#7](https://github.com/FinAegis/defluff/issues/7).
+
+**For developers right now:**
+
+```bash
+git clone https://github.com/FinAegis/defluff.git
+cd defluff
+pnpm install
+pnpm --filter @defluff/extension build
+```
+
+Then load `apps/extension/dist` as an unpacked extension (`chrome://extensions` → Developer mode → **Load unpacked**). Click the Defluff icon in the toolbar to open settings.
+
+For the Outlook add-in:
+
+```bash
+pnpm --filter @defluff/outlook-addin dev
+```
+
+Then sideload `apps/outlook-addin/manifest.xml` from **Outlook Web → Get Add-ins → My add-ins → Custom Addins**.
+
+---
+
+## Providers
+
+| Provider | Default model | How it connects |
 |---|---|---|
-| `apps/extension/` | Chrome/Edge/Firefox MV3 extension for Gmail + Outlook Web | planned |
-| `apps/outlook-addin/` | Office.js add-in for Outlook desktop (Windows/Mac) | planned |
-| `apps/openclaw-skill/` | [Openclaw](https://openclaw.ai) skill (`SKILL.md`) | planned |
-| `packages/core/` | Shared extraction logic, provider adapters, system prompt | planned |
-| `packages/proxy/` | Optional Cloudflare Worker (CORS fallback, only if needed) | planned |
+| **Anthropic Claude** | `claude-haiku-4-5-20251001` | Messages API with the browser-direct header |
+| **OpenAI** | `gpt-4o-mini` | `dangerouslyAllowBrowser` — not actually dangerous here since it's your own key in your own browser |
+| **Google Gemini** | `gemini-2.5-flash` | Key as query param, native CORS |
+| **OpenAI-compatible** | `llama3` | Ollama (`http://localhost:11434/v1`), LM Studio, or any compatible endpoint |
 
-## Supported providers
+All four share one extraction prompt. Swap providers anytime from the options page.
 
-- Anthropic Claude (Haiku tier recommended for extraction)
-- OpenAI (GPT-4o mini recommended)
-- Google Gemini (Flash tier recommended)
-- Any OpenAI-compatible endpoint (Ollama, llama.cpp, LM Studio, custom)
+---
+
+## How it compares
+
+|   | **Defluff** | Shortwave | Superhuman AI | Grammarly |
+|---|---|---|---|---|
+| Your email reaches their servers | **Never** | Yes | Yes | Yes |
+| Stores your content | **Never** | Yes | Yes | Yes |
+| Needs an account | **No** | Yes | Yes | Yes |
+| Monthly cost | **$0\*** | $12 | $40 | $12 |
+| Open source | **Yes** | No | No | No |
+| Works with local LLMs | **Yes (Ollama)** | No | No | No |
+
+<sub>* Plus whatever you pay your chosen LLM provider. Typical heavy usage: under $1/month on Claude Haiku or GPT-4o mini. $0 on Ollama.</sub>
+
+---
 
 ## Privacy
 
-- Email bodies are sent only to the LLM provider *you* configure.
-- No telemetry, no analytics, no accounts.
-- Extension permissions are scoped to `mail.google.com` and `outlook.office.com` only — never `<all_urls>`.
-- API keys are stored in the browser's/Office's encrypted per-user settings storage.
+- Your email never touches FinAegis infrastructure. **There is no FinAegis infrastructure.**
+- API keys are stored in `chrome.storage.sync` (browser) or `Office.context.roamingSettings` (Outlook) — encrypted at rest, per-user, synced by the platform.
+- Extension permissions are host-scoped: `mail.google.com`, `outlook.office.com`, and the exact LLM endpoints you'll use. **Never `<all_urls>`.**
+- Zero analytics, zero telemetry, zero accounts.
+
+Full threat model: **[SECURITY.md](SECURITY.md)**. Reporting: private advisories via [GitHub Security](https://github.com/FinAegis/defluff/security/advisories/new).
+
+---
+
+## Architecture
+
+```
+  your browser / Outlook webview
+  ─────────────────────────────────────────────────
+  [De-Fluff button] ──► [email text] ──► [LLM provider]
+                                              ↑
+                                 api.anthropic.com /
+                                 api.openai.com /
+                                 generativelanguage.googleapis.com /
+                                 your-ollama-endpoint
+```
+
+A pnpm monorepo. TypeScript end to end. Vite for bundling.
+
+| Package | What it is |
+|---|---|
+| [`packages/core`](packages/core) | Extraction prompt, 4 provider adapters, bullet parser, typed errors. Pure TS, no platform APIs. |
+| [`apps/extension`](apps/extension) | MV3 extension for Chrome/Edge/Firefox. React options page, Shadow-DOM-hosted content UI so host-page CSS can't bleed in. |
+| [`apps/outlook-addin`](apps/outlook-addin) | Office.js add-in. Plain-TS task pane, zero runtime deps. |
+| [`apps/openclaw-skill`](apps/openclaw-skill) | A single `SKILL.md` (markdown + YAML) for the [Openclaw](https://openclaw.ai) agent platform. |
+
+Provider adapters use plain `fetch()` — no SDKs in the bundle — to keep client bundles small and the audit surface minimal.
+
+---
+
+## Contributing
+
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, the architectural constraints that are non-negotiable (no backend, host-scoped permissions, verbatim extraction prompt), and commit conventions.
+
+The most useful contributions right now are the [**launch-blocker issues**](https://github.com/FinAegis/defluff/labels/launch-blocker) — real-world Gmail/Outlook DOM validation and a CORS smoke test against each provider from a live Outlook task pane.
+
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE). Fork it, audit it, ship your own.
 
-## Status
-
-Pre-alpha. Spec in [`requirements.md`](requirements.md), working notes for contributors in [`CLAUDE.md`](CLAUDE.md).
+<sub>Built with skepticism by [FinAegis](https://github.com/FinAegis).</sub>

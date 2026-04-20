@@ -4,12 +4,16 @@ Draft copy for the Defluff launch. Keep this file updated as the product evolves
 
 ## The wedge
 
-> **AI wrote this email. Have AI read it.**
+> **AI wrote this email. Let's see what they actually wanted.**
 
-Nine-word pitch. Use everywhere. It works because:
-- It captures the entire value prop.
+Use everywhere. It works because:
+- It captures the entire value prop in one line.
 - It's an inversion — memorable, quotable, reposted as-is.
 - It sets up the privacy narrative: you're not trusting a new SaaS, you're turning the AI arms race back on itself with your own tools.
+
+### Hero asset
+
+`docs/screenshot.jpg` — real sales-outreach email, defluffed. Shows the reversed prompt + NOISE verdict + bullet specifics in a single frame. Use this everywhere a still image is needed (README, landing, Chrome Web Store promo, Product Hunt, Show HN `og:image`).
 
 ## Show HN post (draft)
 
@@ -117,15 +121,16 @@ Lead with "your organization's CISO already banned Grammarly and Otter." Skip th
 
 ## Launch checklist
 
+- [x] ClawHub skill published (`defluff` v0.0.4 live at https://clawhub.ai/yozaz/defluff)
+- [x] Hero screenshot in the README (`docs/screenshot.jpg`)
 - [ ] All [launch-blocker issues](https://github.com/FinAegis/defluff/labels/launch-blocker) closed
-- [ ] Before/after screenshot in the README and landing
-- [ ] 20-second demo video (no voiceover; one click, three bullets, done)
+- [ ] 20-second demo video (no voiceover; one click, reversed prompt + verdict + bullets, done)
+- [ ] 2–3 variant screenshots: one **ACTIONABLE** (work email with deadline), one **RESPONSE-NEEDED** (colleague asking a question), one **NOISE** (✓ sales pitch, `docs/screenshot.jpg`). Chrome Web Store wants 3–5 promo shots at 1280×800.
 - [ ] Landing page live
 - [ ] Chrome Web Store listing approved
 - [ ] Edge Add-ons listing approved
 - [ ] Firefox AMO submission in queue
 - [ ] AppSource submission in queue
-- [ ] ClawHub skill published
 - [ ] Show HN post drafted (above) — post Tuesday or Wednesday 8am PT
 - [ ] Maintainer available for 24h to reply to comments
 - [ ] Pre-warmed on r/LocalLLaMA and r/selfhosted as follow-up posts

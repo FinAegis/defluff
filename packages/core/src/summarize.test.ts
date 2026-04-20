@@ -10,21 +10,24 @@ function mockFetchOnce(status: number, payload: unknown): void {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response));
 }
 
+const MODEL_RESPONSE = [
+  'Prompt: "Ask the team for the deck by EOD Wednesday."',
+  'Verdict: ACTIONABLE — has a concrete deadline',
+  '',
+  '- Send deck by EOD Wednesday',
+  '- Hold customer logos pending legal',
+  '- Review with Jane on Thursday',
+].join('\n');
+
 describe('summarize', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
-  it('returns parsed bullets from an OpenAI-shaped response', async () => {
+  it('returns parsed bullets plus verdict metadata from an OpenAI-shaped response', async () => {
     mockFetchOnce(200, {
-      choices: [
-        {
-          message: {
-            content: '- Need signoff by EOD Thursday\n- Blocker: missing legal review\n- Meeting tomorrow 10am',
-          },
-        },
-      ],
+      choices: [{ message: { content: MODEL_RESPONSE } }],
     });
 
     const result = await summarize({
@@ -33,7 +36,8 @@ describe('summarize', () => {
     });
 
     expect(result.bullets).toHaveLength(3);
-    expect(result.bullets[0]).toBe('Need signoff by EOD Thursday');
+    expect(result.verdict).toBe('actionable');
+    expect(result.reversedPrompt).toMatch(/deck by EOD Wednesday/);
   });
 
   it('rejects empty email text', async () => {
@@ -42,7 +46,7 @@ describe('summarize', () => {
     ).rejects.toBeInstanceOf(DefluffError);
   });
 
-  it('throws no_bullets when the model returns prose only', async () => {
+  it('throws no_bullets only when verdict is not NOISE', async () => {
     mockFetchOnce(200, {
       choices: [{ message: { content: 'The sender wants help with the deck.' } }],
     });
@@ -53,6 +57,23 @@ describe('summarize', () => {
         provider: { kind: 'openai', apiKey: 'sk-test' },
       }),
     ).rejects.toMatchObject({ code: 'no_bullets' });
+  });
+
+  it('allows a NOISE response with zero bullets', async () => {
+    const noiseResponse = [
+      'Prompt: "Write a generic recruiter blast."',
+      'Verdict: NOISE — boilerplate recruiting pitch',
+    ].join('\n');
+    mockFetchOnce(200, {
+      choices: [{ message: { content: noiseResponse } }],
+    });
+
+    const result = await summarize({
+      text: 'Hey! Saw your profile...',
+      provider: { kind: 'openai', apiKey: 'sk-test' },
+    });
+    expect(result.verdict).toBe('noise');
+    expect(result.bullets).toEqual([]);
   });
 
   it('maps a 401 response to an auth error', async () => {

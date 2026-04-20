@@ -1,3 +1,4 @@
+import type { Summary, Verdict } from '@defluff/core';
 import { CONTENT_CSS } from './styles.js';
 
 export interface PanelController {
@@ -13,11 +14,25 @@ export interface PanelError {
 }
 
 export interface PanelOptions {
-  bullets?: string[];
+  summary?: Summary;
   error?: PanelError;
   onShowOriginal?: () => void;
   onDismiss?: () => void;
 }
+
+const VERDICT_LABELS: Record<Verdict, string> = {
+  actionable: 'Actionable',
+  'response-needed': 'Response needed',
+  fyi: 'FYI',
+  noise: 'Noise',
+};
+
+const VERDICT_ICONS: Record<Verdict, string> = {
+  actionable: '⚡',
+  'response-needed': '💬',
+  fyi: 'ℹ',
+  noise: '🗑',
+};
 
 export function createPanel(opts: PanelOptions): PanelController {
   const host = document.createElement('div');
@@ -34,36 +49,14 @@ export function createPanel(opts: PanelOptions): PanelController {
   panel.setAttribute('role', isError ? 'alert' : 'region');
   panel.setAttribute('aria-label', isError ? 'Defluff error' : 'Email summary');
   panel.tabIndex = -1;
-
-  const heading = document.createElement('h3');
-  if (isError && opts.error) {
-    const icon = document.createElement('span');
-    icon.className = 'df-error-icon';
-    icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = '⚠';
-    heading.appendChild(icon);
-    const text = document.createElement('span');
-    text.textContent = opts.error.title;
-    heading.appendChild(text);
-  } else {
-    heading.textContent = 'Defluffed summary';
+  if (!isError && opts.summary?.verdict) {
+    panel.dataset.verdict = opts.summary.verdict;
   }
-  panel.appendChild(heading);
 
-  if (opts.error) {
-    if (opts.error.explanation) {
-      const p = document.createElement('p');
-      p.textContent = opts.error.explanation;
-      panel.appendChild(p);
-    }
-  } else {
-    const list = document.createElement('ul');
-    for (const bullet of opts.bullets ?? []) {
-      const li = document.createElement('li');
-      li.textContent = bullet;
-      list.appendChild(li);
-    }
-    panel.appendChild(list);
+  if (isError && opts.error) {
+    renderError(panel, opts.error);
+  } else if (opts.summary) {
+    renderSummary(panel, opts.summary);
   }
 
   const actions = document.createElement('div');
@@ -90,6 +83,99 @@ export function createPanel(opts: PanelOptions): PanelController {
       host.remove();
     },
   };
+}
+
+function renderError(panel: HTMLElement, error: PanelError): void {
+  const heading = document.createElement('h3');
+  const icon = document.createElement('span');
+  icon.className = 'df-error-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '⚠';
+  heading.appendChild(icon);
+  const text = document.createElement('span');
+  text.textContent = error.title;
+  heading.appendChild(text);
+  panel.appendChild(heading);
+
+  if (error.explanation) {
+    const p = document.createElement('p');
+    p.textContent = error.explanation;
+    panel.appendChild(p);
+  }
+}
+
+function renderSummary(panel: HTMLElement, summary: Summary): void {
+  if (summary.reversedPrompt) {
+    panel.appendChild(buildPromptBlock(summary.reversedPrompt));
+  }
+
+  if (summary.verdict) {
+    panel.appendChild(buildVerdictRow(summary.verdict, summary.verdictReason));
+  }
+
+  if (summary.bullets.length > 0) {
+    const sectionLabel = document.createElement('p');
+    sectionLabel.className = 'df-section-label';
+    sectionLabel.textContent = 'Specifics';
+    panel.appendChild(sectionLabel);
+
+    const list = document.createElement('ul');
+    for (const bullet of summary.bullets) {
+      const li = document.createElement('li');
+      li.textContent = bullet;
+      list.appendChild(li);
+    }
+    panel.appendChild(list);
+  }
+}
+
+function buildPromptBlock(reversedPrompt: string): HTMLElement {
+  const block = document.createElement('section');
+  block.className = 'df-prompt';
+
+  const label = document.createElement('p');
+  label.className = 'df-prompt-label';
+  const icon = document.createElement('span');
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '💭';
+  const labelText = document.createElement('span');
+  labelText.textContent = 'They probably asked an AI';
+  label.appendChild(icon);
+  label.appendChild(labelText);
+  block.appendChild(label);
+
+  const text = document.createElement('p');
+  text.className = 'df-prompt-text';
+  text.textContent = `“${reversedPrompt}”`;
+  block.appendChild(text);
+
+  return block;
+}
+
+function buildVerdictRow(verdict: Verdict, reason?: string): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'df-verdict';
+  row.dataset.verdict = verdict;
+
+  const icon = document.createElement('span');
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = VERDICT_ICONS[verdict];
+
+  const label = document.createElement('span');
+  label.className = 'df-verdict-label';
+  label.textContent = VERDICT_LABELS[verdict];
+
+  row.appendChild(icon);
+  row.appendChild(label);
+
+  if (reason) {
+    const reasonSpan = document.createElement('span');
+    reasonSpan.className = 'df-verdict-reason';
+    reasonSpan.textContent = reason;
+    row.appendChild(reasonSpan);
+  }
+
+  return row;
 }
 
 function makeLink(label: string, onClick: () => void): HTMLButtonElement {

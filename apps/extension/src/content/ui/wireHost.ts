@@ -157,7 +157,7 @@ function wireTarget(
     };
 
     const panel = createPanel({
-      ...(response.ok ? { bullets: response.bullets } : {}),
+      ...(response.ok ? { summary: response.summary } : {}),
       ...(response.ok ? {} : { error: buildErrorPayload(response, restore) }),
       ...(response.ok ? { onShowOriginal: restore } : {}),
       onDismiss: restore,

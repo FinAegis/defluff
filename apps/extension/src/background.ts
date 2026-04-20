@@ -63,8 +63,8 @@ async function handleSummarize(text: string): Promise<SummarizeResponse> {
   }
 
   try {
-    const { bullets } = await summarize({ text, provider });
-    return { ok: true, bullets };
+    const summary = await summarize({ text, provider });
+    return { ok: true, summary };
   } catch (err) {
     if (err instanceof DefluffError) {
       return { ok: false, error: err.message, code: err.code };

@@ -31,7 +31,16 @@ export type ProviderConfig =
   | GeminiConfig
   | OpenAICompatibleConfig;
 
+export type Verdict = 'actionable' | 'response-needed' | 'fyi' | 'noise';
+
 export interface Summary {
+  /** Best-guess imperative the sender probably gave an AI. The reversal. */
+  reversedPrompt?: string;
+  /** Verdict classifying how much attention the email deserves. */
+  verdict?: Verdict;
+  /** One-sentence justification for the verdict. */
+  verdictReason?: string;
+  /** Extracted specifics — facts, actions, questions. */
   bullets: string[];
 }
 

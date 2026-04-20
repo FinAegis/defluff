@@ -32,7 +32,7 @@ TypeScript end-to-end. Vite for the extension. pnpm for the workspace.
 - **Zero-retention is structural, not policy.** There is no server to persist on. If you find yourself adding one, stop and raise it — it's an architecture change, not an implementation detail.
 - **Extension permissions must be host-specific** (`mail.google.com`, `outlook.office.com`). Never request `<all_urls>` — it fails Chrome Web Store review.
 - **Provider adapters must be pluggable.** No hard-coded provider anywhere outside `packages/core/providers/`. The extraction prompt is fixed; the provider is not.
-- **Extraction prompt is load-bearing.** The exact wording is specified in `requirements.md` §4.4 ("You are an extraction tool…"). Preserve its restrictive framing — loosening it reintroduces the fluff the product exists to remove.
+- **Extraction prompt is load-bearing.** The authoritative wording lives in `packages/core/src/prompt.ts`; `requirements.md` §4.4 summarizes it. It instructs the model to produce three things in order: the `Prompt:` reversal (soul of the product), the `Verdict:` classification (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE with scam-pattern naming in the reason), and 3–5 bullets of specifics. Preserve the restrictive framing — loosening reintroduces the fluff the product exists to remove. Any change updates both files in the same commit.
 - **Latency-optimized models by default** (Claude Haiku, GPT-4o mini, Gemini Flash). This is extraction, not creative writing.
 
 ## Coding conventions

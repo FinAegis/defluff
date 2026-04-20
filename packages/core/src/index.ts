@@ -7,7 +7,7 @@ export {
 export type { ProviderConfigInput } from './config.js';
 export { DefluffError } from './errors.js';
 export type { DefluffErrorCode } from './errors.js';
-export { parseBullets } from './parse.js';
+export { parseBullets, parseSummary } from './parse.js';
 export { buildUserPrompt, SYSTEM_PROMPT } from './prompt.js';
 export {
   PROVIDER_DEFAULT_MODELS,
@@ -30,4 +30,5 @@ export type {
   ProviderRunArgs,
   Summary,
   SummarizeOptions,
+  Verdict,
 } from './types.js';

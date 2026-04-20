@@ -30,8 +30,13 @@ To reach the widest audience with the best user experience, the product requires
 1.  **Trigger:** User opens an email and clicks the "De-Fluff" button.
 2.  **Extraction:** The client grabs the `innerText` of the email body, stripping away HTML formatting, signatures, and tracking pixels.
 3.  **Transmission:** The raw text is sent securely to your backend via an HTTPS POST request.
-4.  **LLM Processing:** The backend feeds the text into the LLM with a highly restrictive system prompt:
-    > *"You are an extraction tool. Analyze the following email. Strip away all pleasantries, corporate jargon, and likely AI-generated padding. Output only the core facts, the sender's underlying intent, and any specific action items or questions requested. Format strictly as a concise, 3-5 bullet point list. Do not add conversational filler."*
+4.  **LLM Processing:** The backend (or, in the current architecture, the client) feeds the text into the LLM with a highly restrictive system prompt that does the *reversal* the product is named for. The authoritative prompt lives in `packages/core/src/prompt.ts`. In summary, it instructs the model to produce three things in order:
+
+    1. **Prompt line** — `Prompt: "..."` — the model's best guess at the imperative the sender probably gave an AI to generate the email.
+    2. **Verdict line** — `Verdict: [ACTIONABLE | RESPONSE-NEEDED | FYI | NOISE] — reason` — classifies the email's urgency. NOISE covers promotional, automated, generic recruiting, AND likely scam patterns (fake conferences, fake interviews, crypto/MLM pitches, phishing, generic "amazing opportunity" outreach).
+    3. **Specifics** — a concise 3–5 bullet list of the actual facts, questions, and action items. For NOISE emails, a single bullet identifying the pattern.
+
+    The prompt is load-bearing: loosening its restrictive framing is how the output regains the fluff we're stripping. Changes to the wording require updating both this section and `packages/core/src/prompt.ts` in the same commit.
 5.  **Return & Display:** The backend sends the bulleted JSON/Markdown back to the client.
 6.  **UI Update:** The client visually collapses the original long email and overlays the clean, bulleted summary. A "Show Original" toggle is provided to restore the full text.
 

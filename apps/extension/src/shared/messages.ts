@@ -1,4 +1,4 @@
-import type { DefluffErrorCode } from '@defluff/core';
+import type { DefluffErrorCode, Summary } from '@defluff/core';
 
 export const MSG_SUMMARIZE = 'summarize' as const;
 export const MSG_TRIGGER_ACTIVE = 'trigger_active' as const;
@@ -20,5 +20,5 @@ export interface OpenOptionsRequest {
 export type AppRequest = SummarizeRequest | TriggerActiveRequest | OpenOptionsRequest;
 
 export type SummarizeResponse =
-  | { ok: true; bullets: string[] }
+  | { ok: true; summary: Summary }
   | { ok: false; error: string; code?: DefluffErrorCode };

@@ -78,6 +78,19 @@ describe('parseSummary', () => {
     expect(summary.verdictReason).toBeUndefined();
   });
 
+  it('handles punctuation separating the verdict from its reason', () => {
+    const cases: Array<[string, string]> = [
+      ['Verdict: NOISE. Generic recruiter pitch', 'Generic recruiter pitch'],
+      ['Verdict: ACTIONABLE; deadline is Friday', 'deadline is Friday'],
+      ['Verdict: FYI, informational only', 'informational only'],
+    ];
+    for (const [raw, reason] of cases) {
+      const summary = parseSummary(raw);
+      expect(summary.verdict).toBeDefined();
+      expect(summary.verdictReason).toBe(reason);
+    }
+  });
+
   it('still parses when prompt / verdict lines are missing', () => {
     const raw = '- Send deck by Friday\n- Hold logos';
     const summary = parseSummary(raw);

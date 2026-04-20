@@ -1,29 +1,17 @@
 import {
   buildProviderConfig,
   DefluffError,
+  formatReversedPrompt,
   isProviderKind,
   PROVIDER_DEFAULT_MODELS,
   toUserError,
   type ProviderConfig,
   type ProviderKind,
   type Summary,
-  type Verdict,
   summarize,
+  VERDICT_ICONS,
+  VERDICT_LABELS,
 } from '@defluff/core';
-
-const VERDICT_LABELS: Record<Verdict, string> = {
-  actionable: 'Actionable',
-  'response-needed': 'Response needed',
-  fyi: 'FYI',
-  noise: 'Noise',
-};
-
-const VERDICT_ICONS: Record<Verdict, string> = {
-  actionable: '⚡',
-  'response-needed': '💬',
-  fyi: 'ℹ',
-  noise: '🗑',
-};
 import { getCurrentEmailText } from '../shared/email.js';
 import {
   clearProviderConfig,
@@ -140,7 +128,7 @@ function renderSummary(summary: Summary): void {
 
   const promptBlock = byId('prompt-block');
   if (summary.reversedPrompt) {
-    byId<HTMLElement>('prompt-text').textContent = `“${summary.reversedPrompt}”`;
+    byId<HTMLElement>('prompt-text').textContent = formatReversedPrompt(summary.reversedPrompt);
     promptBlock.hidden = false;
   } else {
     promptBlock.hidden = true;

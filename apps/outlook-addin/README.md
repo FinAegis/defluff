@@ -2,44 +2,64 @@
 
 Office Add-in for Outlook (desktop and web). Adds a **De-Fluff** ribbon button on the Message Read surface that opens a task pane with the bulleted summary.
 
-## Development
+## For end users — install the hosted add-in
+
+The add-in is built and published to GitHub Pages on every merge to main. To install:
+
+1. Download the production manifest: **https://finaegis.github.io/defluff/manifest.xml**
+2. **Outlook Web:** **Get Add-ins** → **My add-ins** → **Custom Addins** → **Add a custom add-in** → **Add from File** → pick the downloaded `manifest.xml`.
+3. **Outlook desktop (Windows/Mac):** same flow via **Get Add-ins** from the ribbon.
+4. Open any email — click the **De-Fluff** button in the ribbon to open the task pane and configure a provider.
+
+For org-wide deployment, your Microsoft 365 admin can upload the same manifest via the [Integrated apps](https://admin.microsoft.com/Adminportal/Home?source=applauncher#/Settings/IntegratedApps) console in the admin center.
+
+## For contributors — local dev
 
 ```bash
-pnpm install                                    # at the repo root
-pnpm --filter @defluff/outlook-addin dev        # starts Vite on https://localhost:3000
+pnpm install                              # at the repo root
+pnpm --filter @defluff/outlook-addin dev  # starts Vite on https://localhost:3000
 ```
 
-`@vitejs/plugin-basic-ssl` generates a self-signed cert automatically. The first time you hit `https://localhost:3000` you'll need to trust the cert in your browser (and for desktop Outlook, the OS cert store).
+`@vitejs/plugin-basic-ssl` generates a self-signed cert automatically. The first time you hit `https://localhost:3000` you'll need to trust the cert in your browser (and, for desktop Outlook, in your OS cert store).
 
-### Sideloading into Outlook
+### Sideloading the dev build
 
 1. Keep `pnpm dev` running.
-2. In Outlook (web): **Get Add-ins → My add-ins → Add a custom add-in → Add from File** and pick `manifest.xml`.
-3. Open a message. The **De-Fluff** button appears in the ribbon's Home tab.
-
-For desktop Outlook on Windows, install the manifest via **File → Options → Trust Center → Trust Center Settings → Trusted Add-in Catalogs** (shared network path) or use the [Microsoft 365 admin center](https://admin.microsoft.com) for org-wide deployment.
+2. In Outlook Web: **Get Add-ins → My add-ins → Custom Addins → Add a custom add-in → Add from File** and pick `apps/outlook-addin/manifest.xml` (the dev version, pointing at `https://localhost:3000`).
+3. Open a message — the **De-Fluff** button appears in the ribbon.
 
 ## Regenerating icons
 
-Icons live in `public/icons/` (Vite serves them at `https://localhost:3000/icons/*` in dev) and are generated from `assets/icon.svg` at the repo root:
+Icons live in `public/icons/` (Vite serves them at `/icons/*` in dev) and are generated from `assets/icon.svg` at the repo root:
 
 ```bash
 pnpm icons   # writes 16/32/64/80/128 PNGs to apps/outlook-addin/public/icons/
 ```
 
+## Build configuration
+
+Vite honors two env vars that the CI workflow sets for production builds:
+
+| Env var | Purpose |
+|---|---|
+| `DEFLUFF_ADDIN_BASE_PATH` | Vite `base` — must match the public URL subpath (e.g. `/defluff/` for GitHub Pages project sites). Defaults to `/`. |
+| `DEFLUFF_ADDIN_BASE_URL` | Absolute URL used by `build:manifest` to rewrite `https://localhost:3000` in `manifest.xml` to the production host. |
+
+Run `pnpm build:manifest` after a production build to generate `manifest.production.xml`.
+
 ## Known TODOs before AppSource / production
 
-- **Stable hosting URL**: replace every `https://localhost:3000` in `manifest.xml` with the production URL.
-- **Replace the Id GUID**: the current one is a dev-only placeholder. Generate a real GUID.
-- **AppSource validation**: Microsoft validates manifests strictly. Run `npx office-addin-manifest validate manifest.xml` before submission.
-- **CORS verification**: test direct calls from the task pane webview to each provider (Anthropic, OpenAI, Gemini). If any provider blocks the add-in origin, fall back to `packages/proxy` (Cloudflare Worker) rather than introducing a FinAegis-operated server.
+- **Replace the Id GUID**: `manifest.xml` still carries a dev-only placeholder. Generate a real GUID before AppSource submission.
+- **Validate**: run `npx office-addin-manifest validate manifest.production.xml` — AppSource validates manifests strictly.
+- **CORS verification**: see [#6](https://github.com/FinAegis/defluff/issues/6). Direct calls from the task pane to each provider need live testing; fall back to `packages/proxy` only if a provider blocks the Pages origin.
 
 ## Architecture
 
-- `manifest.xml` — Office Add-in manifest, targets the Message Read surface.
-- `src/taskpane/` — the pane UI. Plain TS + HTML + CSS (no React — keeps the bundle minimal).
-- `src/commands/` — function file. Currently unused (the ribbon button opens the task pane); reserved for future ExecuteFunction commands.
-- `src/shared/storage.ts` — `Office.context.roamingSettings` wrapper for storing the user's provider config (per-user, synced across devices by Office).
-- `src/shared/email.ts` — reads the current message body via `Office.context.mailbox.item.body.getAsync(Text)`.
+- `manifest.xml` — dev manifest (`https://localhost:3000`). Checked in.
+- `manifest.production.xml` — generated by `build:manifest` from `manifest.xml` with URL substitution. **Git-ignored** — CI writes it into the Pages deploy, users download it from `https://finaegis.github.io/defluff/manifest.xml`.
+- `src/taskpane/` — plain TS + HTML + CSS task pane.
+- `src/commands/` — function file referenced by the manifest. Reserved for future `ExecuteFunction` commands.
+- `src/shared/storage.ts` — `Office.context.roamingSettings` wrapper.
+- `src/shared/email.ts` — reads the current message body via `item.body.getAsync(Text)`.
 
-The task pane calls `@defluff/core.summarize()` directly. No backend, no service-worker indirection — the webview hits the user's chosen LLM endpoint.
+The task pane calls `@defluff/core.summarize()` directly — no backend, no service-worker indirection.

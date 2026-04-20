@@ -43,6 +43,7 @@ web-ext-artifacts/
 
 # Office add-in
 .vs/
+apps/outlook-addin/manifest.production.xml
 
 # Vercel
 .vercel

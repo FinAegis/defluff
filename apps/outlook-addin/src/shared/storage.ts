@@ -1,6 +1,6 @@
-import type { ProviderConfig } from '@defluff/core';
+import { isProviderConfig, type ProviderConfig } from '@defluff/core';
 
-const KEY = 'defluff.provider';
+const STORAGE_KEY = 'defluff.provider';
 
 /**
  * Wrap Office.context.roamingSettings. Reads are synchronous; saves are async
@@ -8,7 +8,7 @@ const KEY = 'defluff.provider';
  * the user's devices by Office — equivalent to chrome.storage.sync.
  */
 export function getProviderConfig(): ProviderConfig | null {
-  const raw = Office.context.roamingSettings.get(KEY);
+  const raw = Office.context.roamingSettings.get(STORAGE_KEY);
   if (typeof raw === 'string') {
     try {
       const parsed: unknown = JSON.parse(raw);
@@ -21,38 +21,23 @@ export function getProviderConfig(): ProviderConfig | null {
 }
 
 export async function setProviderConfig(config: ProviderConfig): Promise<void> {
-  Office.context.roamingSettings.set(KEY, JSON.stringify(config));
-  await new Promise<void>((resolvePromise, reject) => {
+  Office.context.roamingSettings.set(STORAGE_KEY, JSON.stringify(config));
+  await saveRoamingSettings();
+}
+
+export async function clearProviderConfig(): Promise<void> {
+  Office.context.roamingSettings.remove(STORAGE_KEY);
+  await saveRoamingSettings();
+}
+
+function saveRoamingSettings(): Promise<void> {
+  return new Promise((resolve, reject) => {
     Office.context.roamingSettings.saveAsync((result) => {
       if (result.status === Office.AsyncResultStatus.Succeeded) {
-        resolvePromise();
+        resolve();
       } else {
         reject(new Error(result.error?.message ?? 'Failed to save settings'));
       }
     });
   });
-}
-
-export async function clearProviderConfig(): Promise<void> {
-  Office.context.roamingSettings.remove(KEY);
-  await new Promise<void>((resolvePromise, reject) => {
-    Office.context.roamingSettings.saveAsync((result) => {
-      if (result.status === Office.AsyncResultStatus.Succeeded) {
-        resolvePromise();
-      } else {
-        reject(new Error(result.error?.message ?? 'Failed to clear settings'));
-      }
-    });
-  });
-}
-
-function isProviderConfig(value: unknown): value is ProviderConfig {
-  if (!value || typeof value !== 'object') return false;
-  const kind = (value as { kind?: unknown }).kind;
-  return (
-    kind === 'anthropic' ||
-    kind === 'openai' ||
-    kind === 'gemini' ||
-    kind === 'openai-compatible'
-  );
 }

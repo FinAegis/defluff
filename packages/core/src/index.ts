@@ -1,3 +1,9 @@
+export {
+  buildProviderConfig,
+  isProviderConfig,
+  isProviderKind,
+} from './config.js';
+export type { ProviderConfigInput } from './config.js';
 export { DefluffError } from './errors.js';
 export type { DefluffErrorCode } from './errors.js';
 export { parseBullets } from './parse.js';

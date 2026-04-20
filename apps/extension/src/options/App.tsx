@@ -1,8 +1,9 @@
 import {
+  buildProviderConfig,
+  isProviderKind,
   PROVIDER_DEFAULT_MODELS,
   PROVIDER_KINDS,
   PROVIDER_LABELS,
-  type ProviderConfig,
   type ProviderKind,
 } from '@defluff/core';
 import { useEffect, useState } from 'react';
@@ -34,7 +35,7 @@ export function App() {
     setStatus('saving');
     setError('');
     try {
-      const config = buildConfig({ kind, apiKey, model, baseUrl });
+      const config = buildProviderConfig({ kind, apiKey, model, baseUrl });
       await setProviderConfig(config);
       setStatus('saved');
       window.setTimeout(() => setStatus('idle'), 2000);
@@ -51,6 +52,10 @@ export function App() {
     setStatus('idle');
   };
 
+  const handleKindChange = (value: string): void => {
+    if (isProviderKind(value)) setKind(value);
+  };
+
   return (
     <main>
       <header>
@@ -64,7 +69,7 @@ export function App() {
       <form onSubmit={handleSave}>
         <label>
           Provider
-          <select value={kind} onChange={(e) => setKind(e.target.value as ProviderKind)}>
+          <select value={kind} onChange={(e) => handleKindChange(e.target.value)}>
             {PROVIDER_KINDS.map((k) => (
               <option key={k} value={k}>
                 {PROVIDER_LABELS[k]}
@@ -130,40 +135,4 @@ export function App() {
       </footer>
     </main>
   );
-}
-
-function buildConfig(input: {
-  kind: ProviderKind;
-  apiKey: string;
-  model: string;
-  baseUrl: string;
-}): ProviderConfig {
-  const trimmedModel = input.model.trim();
-  switch (input.kind) {
-    case 'anthropic':
-      return {
-        kind: 'anthropic',
-        apiKey: input.apiKey.trim(),
-        ...(trimmedModel ? { model: trimmedModel } : {}),
-      };
-    case 'openai':
-      return {
-        kind: 'openai',
-        apiKey: input.apiKey.trim(),
-        ...(trimmedModel ? { model: trimmedModel } : {}),
-      };
-    case 'gemini':
-      return {
-        kind: 'gemini',
-        apiKey: input.apiKey.trim(),
-        ...(trimmedModel ? { model: trimmedModel } : {}),
-      };
-    case 'openai-compatible':
-      return {
-        kind: 'openai-compatible',
-        baseUrl: input.baseUrl.trim(),
-        model: trimmedModel || PROVIDER_DEFAULT_MODELS['openai-compatible'],
-        ...(input.apiKey.trim() ? { apiKey: input.apiKey.trim() } : {}),
-      };
-  }
 }

@@ -1,5 +1,7 @@
 import {
+  buildProviderConfig,
   DefluffError,
+  isProviderKind,
   PROVIDER_DEFAULT_MODELS,
   type ProviderConfig,
   type ProviderKind,
@@ -23,22 +25,10 @@ Office.onReady(() => {
 });
 
 function wireUi(): void {
-  byId<HTMLSelectElement>('kind').addEventListener('change', () => {
-    syncProviderFields();
-  });
-
-  byId<HTMLButtonElement>('save').addEventListener('click', () => {
-    void handleSave();
-  });
-
-  byId<HTMLButtonElement>('clear').addEventListener('click', () => {
-    void handleClear();
-  });
-
-  byId<HTMLButtonElement>('run').addEventListener('click', () => {
-    void handleRun();
-  });
-
+  byId<HTMLSelectElement>('kind').addEventListener('change', syncProviderFields);
+  byId<HTMLButtonElement>('save').addEventListener('click', () => void handleSave());
+  byId<HTMLButtonElement>('clear').addEventListener('click', () => void handleClear());
+  byId<HTMLButtonElement>('run').addEventListener('click', () => void handleRun());
   byId<HTMLButtonElement>('edit-config').addEventListener('click', () => {
     showConfig(getProviderConfig());
   });
@@ -71,22 +61,21 @@ function showWork(): void {
 }
 
 function syncProviderFields(): void {
-  const kind = byId<HTMLSelectElement>('kind').value as ProviderKind;
-  const baseurlField = byId('baseurl-field');
-  baseurlField.hidden = kind !== 'openai-compatible';
+  const kind = readKind();
+  byId('baseurl-field').hidden = kind !== 'openai-compatible';
   const apiKeyInput = byId<HTMLInputElement>('apikey');
   apiKeyInput.required = kind !== 'openai-compatible';
   byId<HTMLInputElement>('model').placeholder = PROVIDER_DEFAULT_MODELS[kind];
 }
 
 async function handleSave(): Promise<void> {
-  const kind = byId<HTMLSelectElement>('kind').value as ProviderKind;
-  const apiKey = byId<HTMLInputElement>('apikey').value.trim();
-  const model = byId<HTMLInputElement>('model').value.trim();
-  const baseUrl = byId<HTMLInputElement>('baseurl').value.trim();
-
   try {
-    const config = buildConfig({ kind, apiKey, model, baseUrl });
+    const config = buildProviderConfig({
+      kind: readKind(),
+      apiKey: byId<HTMLInputElement>('apikey').value,
+      model: byId<HTMLInputElement>('model').value,
+      baseUrl: byId<HTMLInputElement>('baseurl').value,
+    });
     await setProviderConfig(config);
     setSaveStatus('Saved', 'ok');
     window.setTimeout(() => showWork(), 600);
@@ -151,40 +140,9 @@ function renderError(err: unknown): void {
   pane.hidden = false;
 }
 
-function buildConfig(input: {
-  kind: ProviderKind;
-  apiKey: string;
-  model: string;
-  baseUrl: string;
-}): ProviderConfig {
-  switch (input.kind) {
-    case 'anthropic':
-      return {
-        kind: 'anthropic',
-        apiKey: input.apiKey,
-        ...(input.model ? { model: input.model } : {}),
-      };
-    case 'openai':
-      return {
-        kind: 'openai',
-        apiKey: input.apiKey,
-        ...(input.model ? { model: input.model } : {}),
-      };
-    case 'gemini':
-      return {
-        kind: 'gemini',
-        apiKey: input.apiKey,
-        ...(input.model ? { model: input.model } : {}),
-      };
-    case 'openai-compatible':
-      if (!input.baseUrl) throw new Error('Base URL is required for OpenAI-compatible endpoints.');
-      return {
-        kind: 'openai-compatible',
-        baseUrl: input.baseUrl,
-        model: input.model || PROVIDER_DEFAULT_MODELS['openai-compatible'],
-        ...(input.apiKey ? { apiKey: input.apiKey } : {}),
-      };
-  }
+function readKind(): ProviderKind {
+  const value = byId<HTMLSelectElement>('kind').value;
+  return isProviderKind(value) ? value : 'anthropic';
 }
 
 function setSaveStatus(text: string, variant: 'ok' | 'err'): void {

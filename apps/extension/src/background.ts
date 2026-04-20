@@ -1,13 +1,13 @@
 import { DefluffError, summarize } from '@defluff/core';
-import type { AppRequest, SummarizeResponse } from './shared/messages.js';
+import { MSG_SUMMARIZE, type AppRequest, type SummarizeResponse } from './shared/messages.js';
 import { getProviderConfig } from './shared/storage.js';
 
 chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
   if (!isAppRequest(message)) return undefined;
 
-  if (message.type === 'summarize') {
+  if (message.type === MSG_SUMMARIZE) {
     void handleSummarize(message.text).then(sendResponse);
-    return true; // keep channel open for async response
+    return true; // Chrome MV3 idiom: keep the channel open for an async response.
   }
 
   return undefined;

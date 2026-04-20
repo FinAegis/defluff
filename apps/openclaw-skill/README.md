@@ -14,12 +14,13 @@ mkdir -p ~/.openclaw/workspace/skills/defluff
 cp SKILL.md ~/.openclaw/workspace/skills/defluff/
 ```
 
-Or publish to ClawHub:
+Or publish to ClawHub from the repo root:
 
 ```bash
-# from this directory
-clawhub publish
+pnpm skill:publish
 ```
+
+This reads the `version:` field from `SKILL.md` frontmatter and invokes `clawhub publish` with the right flags. First time publishing? Run `clawhub login` once before. Bump the version in `SKILL.md` each release.
 
 See the [Openclaw skills docs](https://docs.openclaw.ai/tools/skills) for details on discovery and updates.
 

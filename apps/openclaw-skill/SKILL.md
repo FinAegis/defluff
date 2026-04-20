@@ -1,7 +1,8 @@
 ---
 name: defluff
+displayName: Defluff
 description: Extract the real intent of an email as 3-5 bullets. Strips pleasantries, corporate jargon, and AI-generated padding to surface only facts, intent, and action items.
-version: 0.0.1
+version: 0.0.2
 user-invocable: true
 ---
 

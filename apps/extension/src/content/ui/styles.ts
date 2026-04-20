@@ -18,9 +18,18 @@ export const CONTENT_CSS = `
   --df-muted: #5f6368;
   --df-accent: #1a73e8;
   --df-accent-hover: #1558b0;
+
   --df-error-bg: #fef7f7;
   --df-error-accent: #d93025;
+
+  --df-verdict-actionable: #d93025;
+  --df-verdict-response: #1a73e8;
+  --df-verdict-fyi: #5f6368;
+  --df-verdict-noise: #8a8d91;
+
   --df-shadow: 0 1px 2px rgba(60,64,67,.15);
+  --df-prompt-bg: #eef4ff;
+  --df-prompt-accent: #1a73e8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,9 +41,18 @@ export const CONTENT_CSS = `
     --df-muted: #9aa0a6;
     --df-accent: #8ab4f8;
     --df-accent-hover: #aecbfa;
+
     --df-error-bg: #2c1e1e;
     --df-error-accent: #f28b82;
+
+    --df-verdict-actionable: #f28b82;
+    --df-verdict-response: #8ab4f8;
+    --df-verdict-fyi: #9aa0a6;
+    --df-verdict-noise: #6b6e73;
+
     --df-shadow: 0 1px 2px rgba(0,0,0,.4);
+    --df-prompt-bg: #2a2f36;
+    --df-prompt-accent: #8ab4f8;
   }
 }
 
@@ -61,7 +79,6 @@ export const CONTENT_CSS = `
   display: inline-block;
 }
 .df-button .df-icon { font-size: 14px; line-height: 1; }
-
 @keyframes df-spin { to { transform: rotate(360deg); } }
 
 .df-panel {
@@ -78,20 +95,76 @@ export const CONTENT_CSS = `
   box-shadow: var(--df-shadow);
 }
 .df-panel:focus-visible { outline: 2px solid var(--df-accent); outline-offset: 1px; }
-.df-panel h3 {
-  margin: 0 0 8px 0;
-  font-size: 12px;
+
+/* Reversed prompt block — the emotional payoff of the product */
+.df-prompt {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: var(--df-prompt-bg);
+  border-left: 2px solid var(--df-prompt-accent);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.df-prompt-label {
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--df-muted);
+  margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
+.df-prompt-text {
+  margin: 0;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--df-fg);
+}
+
+/* Verdict row — icon + label + reason */
+.df-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+.df-verdict[data-verdict="actionable"] { color: var(--df-verdict-actionable); }
+.df-verdict[data-verdict="response-needed"] { color: var(--df-verdict-response); }
+.df-verdict[data-verdict="fyi"] { color: var(--df-verdict-fyi); }
+.df-verdict[data-verdict="noise"] { color: var(--df-verdict-noise); }
+.df-verdict-label {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.df-verdict-reason {
+  color: var(--df-fg);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.df-section-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--df-muted);
+}
+
 .df-panel ul { margin: 0; padding-left: 18px; }
 .df-panel li { margin-bottom: 4px; }
 .df-panel li:last-child { margin-bottom: 0; }
+
+/* De-emphasize bullets when verdict is noise — the reader mostly cares about the verdict */
+.df-panel[data-verdict="noise"] ul { opacity: 0.65; }
 
 .df-actions {
   margin-top: 12px;
@@ -128,7 +201,7 @@ export const CONTENT_CSS = `
 .df-cta:focus-visible { outline: 2px solid var(--df-accent); outline-offset: 2px; }
 
 .df-panel.df-error { border-left-color: var(--df-error-accent); background: var(--df-error-bg); }
-.df-panel.df-error h3 { color: var(--df-error-accent); text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 600; }
+.df-panel.df-error h3 { color: var(--df-error-accent); text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 600; margin: 0 0 4px; display: flex; align-items: center; gap: 6px; }
 .df-panel.df-error p { margin: 4px 0 0; color: var(--df-fg); font-size: 13px; }
 .df-panel .df-error-icon { font-size: 14px; }
 

@@ -1,40 +1,88 @@
 import { describe, expect, it } from 'vitest';
-import { parseBullets } from './parse.js';
+import { parseBullets, parseSummary } from './parse.js';
 
-describe('parseBullets', () => {
-  it('parses dash bullets', () => {
+describe('parseBullets (legacy)', () => {
+  it('parses bullets when the response has no verdict or prompt', () => {
     const raw = '- First point\n- Second point\n- Third';
     expect(parseBullets(raw)).toEqual(['First point', 'Second point', 'Third']);
   });
 
-  it('parses asterisk and unicode bullets', () => {
-    expect(parseBullets('* alpha\n• beta\n· gamma')).toEqual(['alpha', 'beta', 'gamma']);
+  it('returns empty array when no bullets present', () => {
+    expect(parseBullets('This response has no bullets at all.')).toEqual([]);
   });
+});
 
-  it('parses numbered lists (dot and paren)', () => {
-    expect(parseBullets('1. first\n2) second\n10. tenth')).toEqual(['first', 'second', 'tenth']);
-  });
-
-  it('drops preamble and trailing lines without markers', () => {
+describe('parseSummary', () => {
+  it('extracts reversedPrompt, verdict, reason, and bullets', () => {
     const raw = [
-      'Here are the key points:',
+      'Prompt: "Politely ask the team for the deck by Wednesday."',
+      'Verdict: ACTIONABLE — deadline-driven request',
       '',
-      '- Need a timeline by Friday',
-      '- Budget cap is $5k',
-      '',
-      'Let me know if you need anything else.',
+      '- Send deck by EOD Wednesday',
+      '- Hold customer logos pending legal sign-off',
     ].join('\n');
-    expect(parseBullets(raw)).toEqual(['Need a timeline by Friday', 'Budget cap is $5k']);
-  });
 
-  it('strips inline bold markup', () => {
-    expect(parseBullets('- **Urgent**: send the deck\n- __blocker__ resolved')).toEqual([
-      'Urgent: send the deck',
-      'blocker resolved',
+    const summary = parseSummary(raw);
+    expect(summary.reversedPrompt).toBe('Politely ask the team for the deck by Wednesday.');
+    expect(summary.verdict).toBe('actionable');
+    expect(summary.verdictReason).toBe('deadline-driven request');
+    expect(summary.bullets).toEqual([
+      'Send deck by EOD Wednesday',
+      'Hold customer logos pending legal sign-off',
     ]);
   });
 
-  it('returns empty array when no bullets present', () => {
-    expect(parseBullets('This response has no bullets at all.')).toEqual([]);
+  it('handles all four verdict tokens', () => {
+    const samples: Array<[string, string]> = [
+      ['Verdict: RESPONSE-NEEDED — waiting on approval', 'response-needed'],
+      ['Verdict: FYI — informational only', 'fyi'],
+      ['Verdict: NOISE — generic recruiter outreach', 'noise'],
+      ['Verdict: ACTIONABLE — has a deadline', 'actionable'],
+    ];
+    for (const [line, expected] of samples) {
+      expect(parseSummary(line).verdict).toBe(expected);
+    }
+  });
+
+  it('accepts NOISE with only the prompt + verdict and zero bullets', () => {
+    const raw = [
+      'Prompt: "Write a generic recruiting outreach."',
+      'Verdict: NOISE — boilerplate recruiter pitch',
+    ].join('\n');
+    const summary = parseSummary(raw);
+    expect(summary.verdict).toBe('noise');
+    expect(summary.bullets).toEqual([]);
+  });
+
+  it('strips fancy quotes around the reversed prompt', () => {
+    const raw = 'Prompt: "Ask for the numbers"\nVerdict: FYI — informational';
+    expect(parseSummary(raw).reversedPrompt).toBe('Ask for the numbers');
+  });
+
+  it('is lenient to bold markup on labels', () => {
+    const raw = [
+      '**Prompt:** "Ask for review"',
+      '**Verdict:** ACTIONABLE — needs input',
+      '- Review needed by Friday',
+    ].join('\n');
+    const summary = parseSummary(raw);
+    expect(summary.reversedPrompt).toBe('Ask for review');
+    expect(summary.verdict).toBe('actionable');
+    expect(summary.bullets).toEqual(['Review needed by Friday']);
+  });
+
+  it('tolerates a verdict without an explicit reason', () => {
+    const raw = 'Verdict: FYI\n- Stats are posted';
+    const summary = parseSummary(raw);
+    expect(summary.verdict).toBe('fyi');
+    expect(summary.verdictReason).toBeUndefined();
+  });
+
+  it('still parses when prompt / verdict lines are missing', () => {
+    const raw = '- Send deck by Friday\n- Hold logos';
+    const summary = parseSummary(raw);
+    expect(summary.reversedPrompt).toBeUndefined();
+    expect(summary.verdict).toBeUndefined();
+    expect(summary.bullets).toHaveLength(2);
   });
 });

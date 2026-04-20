@@ -53,7 +53,16 @@
       <section id="work" hidden>
         <button id="run" type="button" class="primary">De-Fluff this email</button>
         <div id="result" class="result" hidden>
-          <h2>Key points</h2>
+          <section id="prompt-block" class="prompt-block" hidden>
+            <p class="prompt-label"><span aria-hidden="true">💭</span> They probably asked an AI</p>
+            <p class="prompt-text" id="prompt-text"></p>
+          </section>
+          <div id="verdict-row" class="verdict" hidden>
+            <span class="verdict-icon" id="verdict-icon" aria-hidden="true"></span>
+            <span class="verdict-label" id="verdict-label"></span>
+            <span class="verdict-reason" id="verdict-reason"></span>
+          </div>
+          <p class="section-label" id="bullets-label" hidden>Specifics</p>
           <ul id="bullets"></ul>
         </div>
         <div id="error" class="error" hidden></div>

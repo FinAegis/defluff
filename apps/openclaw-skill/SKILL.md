@@ -1,14 +1,14 @@
 ---
 name: defluff
 displayName: Defluff
-description: Extract the real intent of email content — single messages, threads, or a triage batch. Strips pleasantries, corporate jargon, and AI-generated padding, surfacing only facts, questions, and action items.
-version: 0.0.3
+description: Reverse the AI in corporate email. Guess the prompt the sender probably gave an LLM, classify the email, and extract the actual intent. Handles single messages, threads, and batches, with noise/scam detection.
+version: 0.0.4
 user-invocable: true
 ---
 
 # defluff
 
-Use this skill when the user pastes email content and wants the point — one message, a thread, or a batch of unrelated emails — not a polite summary.
+Use this skill when the user pastes email content and wants the point — one message, a thread, or a batch. Defluff **reverses the AI**: it guesses what prompt the sender probably gave an LLM to generate this email, classifies the email's urgency, and extracts the specifics.
 
 ## When to trigger
 
@@ -18,98 +18,105 @@ Use this skill when the user pastes email content and wants the point — one me
 
 ## Core rule
 
-You are an **extraction tool**. Strip all filler. Output only facts, intent, questions, and action items. Never add conversational padding of your own. Never write "Here's what I found", "In summary", "I hope this helps".
+You are an **AI-reversal tool**. Many corporate and outreach emails are padded by LLMs. For every email, do two things in order:
 
-## Priority order within bullets
+1. Guess what prompt the sender probably gave an AI to generate it.
+2. Extract the real intent as a short bullet list.
 
-When multiple kinds of content are present, surface them in this order:
+Never add conversational padding of your own. Never write "Here's what I found", "In summary", "I hope this helps".
 
-1. **Action items or deadlines** the user is expected to do
-2. **Direct questions** that require a response
-3. **Key facts** — numbers, dates, names, decisions, amounts (preserve verbatim)
-4. **Underlying intent** only if it's implicit rather than stated
+## Output format — single email
 
-Cut anything vague or paraphrased.
-
----
-
-## Modes
-
-### 1. Single email
-
-Output **3–5 bullets**. No header, no preamble.
-
-If the email has no substantive content (pleasantries only, or marketing, or an auto-reply), output exactly one bullet:
-
-- `No substantive content; [social | promotional | automated | out-of-office].`
-
-### 2. Thread (multiple messages in one input, same conversation)
-
-For each message, emit a bold header with sender + timestamp when available, then 1–3 bullets.
-
-After the per-message bullets, emit a consolidated **Actions** section listing every action item across the thread, each attributed to the person who owes it.
-
-Format:
+Three lines (two required plus bullets):
 
 ```
-**Alice — Tue 10:14**
-- Budget capped at $50k for Q3
+Prompt: "[short imperative the sender probably gave an AI, in quotes]"
+Verdict: [ACTIONABLE | RESPONSE-NEEDED | FYI | NOISE] — [one-sentence reason, max 15 words]
+
+- bullet 1
+- bullet 2
+- bullet 3
+```
+
+For **NOISE**, skip the bullet list and emit only one bullet describing what kind of noise it is.
+
+### Verdict definitions
+
+| Verdict | When |
+|---|---|
+| **ACTIONABLE** | Email has a concrete task or deadline for the reader |
+| **RESPONSE-NEEDED** | Sender is waiting on the reader's answer |
+| **FYI** | Informational only, no action expected |
+| **NOISE** | Promotional, automated, generic recruiting, purely social, **or a likely scam** |
+
+### NOISE scam patterns to name explicitly
+
+When the email looks like a common scam or low-quality outreach, name the pattern in the verdict's reason line:
+
+- **"likely fake recruiter"** — generic "amazing opportunity" with no company or role specifics
+- **"likely conference scam"** — invitation to a conference the reader has never engaged with, vague venue, pay-to-speak, URL mismatch
+- **"likely fake interview"** — unverified recruiter asks for a technical interview with no company profile or LinkedIn trail
+- **"crypto / MLM pitch"** — mentions crypto, token launches, multi-level marketing, "passive income"
+- **"phishing"** — urgent credential/billing request, mismatched sender domain, suspicious link shortener
+- **"generic outreach"** — no specifics, clearly a template
+
+## Handling a thread (multiple messages, same conversation)
+
+For each message, emit its own three-line block with sender + timestamp as a prefix line, then all messages plus a consolidated **Actions** section:
+
+```
+Alice — Tue 10:14
+Prompt: "Ask Bob for the vendor list by Friday."
+Verdict: RESPONSE-NEEDED — waiting on finalized list
+
+- Q3 budget capped at $50k
 - Need finalized vendor list by Friday
 
-**Bob — Tue 14:02**
-- Vendor A and B confirmed; C declined
+Bob — Tue 14:02
+Prompt: "Confirm vendors A and B, explain C decline."
+Verdict: ACTIONABLE — deliverable coming Thursday
+
+- Vendor A and B confirmed
+- Vendor C declined (timeline)
+- Contract draft Thursday
 
 **Actions**
-- Alice: approve final vendor list by Friday
-- Bob: send Vendor B contract draft by Thursday
+- Alice: approve finalized vendor list by Friday; sign Vendor B contract after Bob's draft lands
+- Bob: send Vendor B contract draft Thursday
 ```
 
-If attribution isn't clear, use the role ("Sender") or omit.
+## Handling a batch (multiple unrelated emails)
 
-### 3. Batch (multiple unrelated emails in one input)
-
-For each email, emit a short header (subject line or sender name), then 1–3 bullets.
-
-After all emails, emit a **Triage** section that classifies each into one of four buckets:
-
-- **Act now** — has a concrete action item or deadline
-- **Reply needed** — the sender is waiting on an answer
-- **FYI** — informational only, no action needed
-- **Noise** — newsletter, marketing, automated, no substantive content
-
-Format:
+For each email, emit a short header (subject or sender), then the three-line block. After all emails, emit a **Triage** section bucketing each into Act now / Reply needed / FYI / Noise:
 
 ```
 **Re: deck review**
-- Send latest deck by EOD Wed
+Prompt: "Remind team about Thursday deck review."
+Verdict: ACTIONABLE — has a deadline
 
-**LinkedIn: You appeared in X searches**
-- No substantive content; promotional.
+- Send deck by EOD Wed
+
+**LinkedIn: exclusive opportunity at "Growth Co"**
+Prompt: "Send a generic recruiter cold outreach."
+Verdict: NOISE — likely fake recruiter
+
+- Generic pitch, no company or role specifics
 
 **Triage**
 - Act now: Re: deck review
-- Noise: LinkedIn: You appeared in X searches
+- Noise: LinkedIn: exclusive opportunity at "Growth Co"
 ```
-
-## Classifying noise
-
-These are almost always noise — one-liner them:
-
-- Newsletters, marketing blasts, drip campaigns → `No substantive content; promotional.`
-- Automated system mail (build failures, monitoring alerts) → noise **unless** the content names a concrete action the user must take.
-- Auto-replies ("out of office", "will respond on [date]") → `No substantive content; out-of-office.`
-- Recruiter outreach without specifics → `No substantive content; generic recruiting.`
 
 ## Hard rules
 
-- Never summarize what the email "is about" in prose.
+- Never summarize what the email "is about" in prose. Bullets only, in the specified format.
 - Never restate greetings, sign-offs, or "I hope this finds you well" variants.
-- Never add conversational filler before or after the bullets.
-- Preserve numbers, dates, names, and amounts verbatim.
-- If a bullet would read as a vague paraphrase, cut it.
-- If the user pastes ambiguous content (not clearly email), ask briefly: "Is this a single email, a thread, or a batch?" before extracting.
+- Never add conversational filler before, between, or after the required lines.
+- Preserve numbers, dates, names, and amounts verbatim in the bullets.
+- The Prompt line is a best-guess imperative framed as the sender would write to an AI ("Ask Bob for…", "Politely decline…"). Do not copy actual email text.
+- If the input isn't clearly email (no greeting, no sender, no sign-off), ask: "Is this a single email, a thread, or a batch?" before extracting.
 
-## Example — single email
+## Example — single actionable email
 
 **Input:**
 
@@ -117,29 +124,25 @@ These are almost always noise — one-liner them:
 
 **Output:**
 
-- Send latest deck by EOD Wednesday for Thursday review
-- Hold customer logos pending legal sign-off
+```
+Prompt: "Politely ask the team for the deck by Wednesday and note the legal hold on customer logos."
+Verdict: ACTIONABLE — has a concrete deadline
 
-## Example — thread
+- Send deck by EOD Wednesday for Thursday review
+- Hold customer logos pending legal sign-off
+```
+
+## Example — NOISE, likely fake recruiter
 
 **Input:**
 
-> **From: Alice** (Tue 10:14)
-> Hi Bob — just to confirm, Q3 budget is capped at $50k. Could you get me the finalized vendor list by Friday?
->
-> **From: Bob** (Tue 14:02)
-> Will do. Vendor A and B confirmed for the platform work; Vendor C passed because the timeline doesn't fit their pipeline. I'll send over the Vendor B contract draft Thursday for your sign-off.
+> Hi there, I came across your profile and was truly impressed with your experience. I represent a confidential but exciting opportunity at a fast-growing startup. Would love to hop on a quick call to discuss!
 
 **Output:**
 
-**Alice — Tue 10:14**
-- Q3 budget capped at $50k
-- Finalized vendor list needed by Friday
+```
+Prompt: "Send a generic cold recruiter outreach that hides the company and role."
+Verdict: NOISE — likely fake recruiter
 
-**Bob — Tue 14:02**
-- Vendor A and B confirmed; Vendor C declined (timeline)
-- Vendor B contract draft arriving Thursday
-
-**Actions**
-- Alice: approve finalized vendor list by Friday; sign Vendor B contract after Bob's draft lands
-- Bob: send Vendor B contract draft Thursday
+- Generic pitch with no company name, role, or specifics.
+```

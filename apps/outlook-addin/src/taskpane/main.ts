@@ -6,8 +6,24 @@ import {
   toUserError,
   type ProviderConfig,
   type ProviderKind,
+  type Summary,
+  type Verdict,
   summarize,
 } from '@defluff/core';
+
+const VERDICT_LABELS: Record<Verdict, string> = {
+  actionable: 'Actionable',
+  'response-needed': 'Response needed',
+  fyi: 'FYI',
+  noise: 'Noise',
+};
+
+const VERDICT_ICONS: Record<Verdict, string> = {
+  actionable: '⚡',
+  'response-needed': '💬',
+  fyi: 'ℹ',
+  noise: '🗑',
+};
 import { getCurrentEmailText } from '../shared/email.js';
 import {
   clearProviderConfig,
@@ -108,8 +124,8 @@ async function handleRun(): Promise<void> {
   try {
     const text = await getCurrentEmailText();
     if (!text) throw new DefluffError('bad_request', 'Message body is empty.');
-    const { bullets } = await summarize({ text, provider: config });
-    renderBullets(bullets);
+    const summary = await summarize({ text, provider: config });
+    renderSummary(summary);
   } catch (err) {
     renderError(err);
   } finally {
@@ -118,15 +134,47 @@ async function handleRun(): Promise<void> {
   }
 }
 
-function renderBullets(bullets: string[]): void {
+function renderSummary(summary: Summary): void {
+  const result = byId('result');
+  result.dataset.verdict = summary.verdict ?? '';
+
+  const promptBlock = byId('prompt-block');
+  if (summary.reversedPrompt) {
+    byId<HTMLElement>('prompt-text').textContent = `“${summary.reversedPrompt}”`;
+    promptBlock.hidden = false;
+  } else {
+    promptBlock.hidden = true;
+  }
+
+  const verdictRow = byId('verdict-row');
+  if (summary.verdict) {
+    verdictRow.dataset.verdict = summary.verdict;
+    byId<HTMLElement>('verdict-icon').textContent = VERDICT_ICONS[summary.verdict];
+    byId<HTMLElement>('verdict-label').textContent = VERDICT_LABELS[summary.verdict];
+    const reasonEl = byId<HTMLElement>('verdict-reason');
+    reasonEl.textContent = summary.verdictReason ?? '';
+    verdictRow.hidden = false;
+  } else {
+    verdictRow.hidden = true;
+  }
+
   const list = byId<HTMLUListElement>('bullets');
   list.replaceChildren();
-  for (const bullet of bullets) {
-    const li = document.createElement('li');
-    li.textContent = bullet;
-    list.appendChild(li);
+  const bulletsLabel = byId('bullets-label');
+  if (summary.bullets.length > 0) {
+    for (const bullet of summary.bullets) {
+      const li = document.createElement('li');
+      li.textContent = bullet;
+      list.appendChild(li);
+    }
+    list.hidden = false;
+    bulletsLabel.hidden = false;
+  } else {
+    list.hidden = true;
+    bulletsLabel.hidden = true;
   }
-  byId('result').hidden = false;
+
+  result.hidden = false;
 }
 
 function renderError(err: unknown): void {

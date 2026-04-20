@@ -8,6 +8,22 @@
   --ok: #107c10;
   --err: #a4262c;
   --panel: #f3f2f1;
+  --err-bg: #fde7e9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1f1f1f;
+    --fg: #e6e6e6;
+    --muted: #a6a6a6;
+    --border: #3a3a3a;
+    --accent: #60cdff;
+    --accent-hover: #9adcff;
+    --ok: #6ccb5f;
+    --err: #f28b82;
+    --panel: #2a2a2a;
+    --err-bg: #3a1e21;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -109,12 +125,18 @@ button.link:hover { text-decoration: underline; background: none; color: var(--a
 
 .error {
   margin-top: 8px;
-  padding: 12px 14px;
-  background: #fde7e9;
+  padding: 14px 16px;
+  background: var(--err-bg);
   border-left: 3px solid var(--err);
-  color: var(--err);
+  color: var(--fg);
   font-size: 13px;
   border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
+.error strong { color: var(--err); font-size: 14px; }
+.error p { margin: 0; }
+.error button { align-self: flex-start; margin-top: 4px; }
 
 .settings-link { margin-top: 14px; font-size: 13px; color: var(--muted); }

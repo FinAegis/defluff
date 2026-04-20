@@ -1,9 +1,13 @@
+import { toUserError } from '@defluff/core';
 import type { SummarizeResponse } from '../../shared/messages.js';
-import { MSG_SUMMARIZE } from '../../shared/messages.js';
-import { createButton } from './button.js';
-import { createPanel } from './panel.js';
+import { MSG_OPEN_OPTIONS, MSG_SUMMARIZE } from '../../shared/messages.js';
+import { createButton, type ButtonController } from './button.js';
+import { createPanel, type PanelError } from './panel.js';
 
 const MARKER = 'data-defluff-wired';
+
+/** Registry used by the keyboard shortcut to trigger the closest visible button. */
+const TRIGGERS = new WeakMap<HTMLElement, () => void>();
 
 export interface HostStrategy {
   /**
@@ -59,6 +63,40 @@ export function startHost(strategy: HostStrategy): () => void {
   return () => observer.disconnect();
 }
 
+/**
+ * Trigger the De-Fluff button closest to the viewport center. Returns true
+ * if a button was triggered. Called by the content-script message handler
+ * when the keyboard shortcut fires.
+ */
+export function triggerClosestButton(): boolean {
+  const hosts = Array.from(
+    document.querySelectorAll<HTMLElement>('[data-defluff="button"]'),
+  );
+  if (hosts.length === 0) return false;
+
+  const viewportCenter = window.innerHeight / 2;
+  let best: HTMLElement | null = null;
+  let bestDistance = Infinity;
+
+  for (const host of hosts) {
+    const rect = host.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight) continue;
+    const center = (rect.top + rect.bottom) / 2;
+    const distance = Math.abs(center - viewportCenter);
+    if (distance < bestDistance) {
+      best = host;
+      bestDistance = distance;
+    }
+  }
+
+  const target = best ?? hosts[0] ?? null;
+  if (!target) return false;
+  const handler = TRIGGERS.get(target);
+  if (!handler) return false;
+  handler();
+  return true;
+}
+
 function schedule(cb: () => void): void {
   if (typeof requestIdleCallback === 'function') {
     requestIdleCallback(cb, { timeout: 500 });
@@ -68,11 +106,15 @@ function schedule(cb: () => void): void {
 }
 
 function wireTarget(body: HTMLElement, anchor: HTMLElement): void {
-  let activePanel: { remove: () => void } | null = null;
+  let activePanel: { remove: () => void; focus: () => void } | null = null;
   let originalDisplay = '';
+  let button: ButtonController;
 
-  const button = createButton(async () => {
-    if (activePanel) return;
+  const trigger = async (): Promise<void> => {
+    if (activePanel) {
+      activePanel.focus();
+      return;
+    }
     if (!body.isConnected) return;
     button.setBusy(true);
 
@@ -98,16 +140,41 @@ function wireTarget(body: HTMLElement, anchor: HTMLElement): void {
       body.style.display = originalDisplay;
       activePanel?.remove();
       activePanel = null;
+      button.focus();
     };
 
     const panel = createPanel({
-      ...(response.ok ? { bullets: response.bullets } : { error: response.error }),
+      ...(response.ok ? { bullets: response.bullets } : {}),
+      ...(response.ok ? {} : { error: buildErrorPayload(response, restore) }),
       ...(response.ok ? { onShowOriginal: restore } : {}),
       onDismiss: restore,
     });
     body.parentElement.insertBefore(panel.element, body);
+    panel.focus();
     activePanel = panel;
-  });
+  };
 
+  button = createButton(() => {
+    void trigger();
+  });
+  TRIGGERS.set(button.element, () => void trigger());
   anchor.insertBefore(button.element, anchor.firstChild);
+}
+
+function buildErrorPayload(
+  response: { ok: false; error: string; code?: Parameters<typeof toUserError>[0] },
+  restore: () => void,
+): PanelError {
+  const userError = toUserError(response.code, response.error);
+  const base: PanelError = { title: userError.title, explanation: userError.explanation };
+  if (userError.action === 'configure') {
+    base.cta = {
+      label: 'Open settings',
+      onClick: () => {
+        void chrome.runtime.sendMessage({ type: MSG_OPEN_OPTIONS });
+        restore();
+      },
+    };
+  }
+  return base;
 }

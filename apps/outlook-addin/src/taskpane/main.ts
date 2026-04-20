@@ -3,6 +3,7 @@ import {
   DefluffError,
   isProviderKind,
   PROVIDER_DEFAULT_MODELS,
+  toUserError,
   type ProviderConfig,
   type ProviderKind,
   summarize,
@@ -129,14 +130,33 @@ function renderBullets(bullets: string[]): void {
 }
 
 function renderError(err: unknown): void {
-  const message =
+  const userError =
     err instanceof DefluffError
-      ? `${err.code}: ${err.message}`
-      : err instanceof Error
-        ? err.message
-        : 'Unknown error';
+      ? toUserError(err.code, err.message)
+      : toUserError(undefined, err instanceof Error ? err.message : 'Unknown error');
+
   const pane = byId('error');
-  pane.textContent = message;
+  pane.replaceChildren();
+
+  const heading = document.createElement('strong');
+  heading.textContent = userError.title;
+  pane.appendChild(heading);
+
+  if (userError.explanation) {
+    const p = document.createElement('p');
+    p.textContent = userError.explanation;
+    pane.appendChild(p);
+  }
+
+  if (userError.action === 'configure') {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'secondary';
+    btn.textContent = 'Change provider';
+    btn.addEventListener('click', () => showConfig(getProviderConfig()));
+    pane.appendChild(btn);
+  }
+
   pane.hidden = false;
 }
 

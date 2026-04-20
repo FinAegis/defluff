@@ -15,6 +15,8 @@ export {
   PROVIDER_LABELS,
 } from './providers/index.js';
 export { summarize } from './summarize.js';
+export { toUserError } from './user-errors.js';
+export type { UserError, UserErrorAction } from './user-errors.js';
 export { DEFAULT_HOSTS_CONFIG } from './types.js';
 export type {
   AnthropicConfig,

@@ -1,7 +1,9 @@
 import type { DefluffErrorCode } from '@defluff/core';
 
+export const MSG_SUMMARIZE = 'summarize' as const;
+
 export interface SummarizeRequest {
-  type: 'summarize';
+  type: typeof MSG_SUMMARIZE;
   text: string;
 }
 

@@ -1,5 +1,11 @@
 import { DefluffError, summarize } from '@defluff/core';
-import { MSG_SUMMARIZE, type AppRequest, type SummarizeResponse } from './shared/messages.js';
+import {
+  MSG_OPEN_OPTIONS,
+  MSG_SUMMARIZE,
+  MSG_TRIGGER_ACTIVE,
+  type AppRequest,
+  type SummarizeResponse,
+} from './shared/messages.js';
 import { getProviderConfig } from './shared/storage.js';
 
 // Open the options page on fresh install so users land directly on the
@@ -18,12 +24,29 @@ chrome.action.onClicked.addListener(() => {
   void chrome.runtime.openOptionsPage();
 });
 
+// Keyboard shortcut (Ctrl/Cmd+Shift+D) triggers the in-view De-Fluff button
+// on the active tab. Content script finds the best target by proximity to
+// the viewport center.
+chrome.commands.onCommand.addListener(async (command, tab) => {
+  if (command !== 'defluff_active' || !tab?.id) return;
+  try {
+    await chrome.tabs.sendMessage(tab.id, { type: MSG_TRIGGER_ACTIVE });
+  } catch {
+    // Active tab has no content script (not Gmail / Outlook / LinkedIn) — no-op.
+  }
+});
+
 chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
   if (!isAppRequest(message)) return undefined;
 
   if (message.type === MSG_SUMMARIZE) {
     void handleSummarize(message.text).then(sendResponse);
     return true; // Chrome MV3 idiom: keep the channel open for an async response.
+  }
+
+  if (message.type === MSG_OPEN_OPTIONS) {
+    void chrome.runtime.openOptionsPage();
+    return undefined;
   }
 
   return undefined;

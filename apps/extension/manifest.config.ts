@@ -51,6 +51,15 @@ export default defineManifest({
   },
   options_ui: { page: 'src/options/index.html', open_in_tab: true },
   background: { service_worker: 'src/background.ts', type: 'module' },
+  commands: {
+    defluff_active: {
+      suggested_key: {
+        default: 'Ctrl+Shift+D',
+        mac: 'Command+Shift+D',
+      },
+      description: 'De-Fluff the email currently in view',
+    },
+  },
   permissions: ['storage'],
   host_permissions: [...EMAIL_HOSTS, ...PROVIDER_HOSTS],
   optional_host_permissions: [...OPTIONAL_HOSTS],

@@ -3,12 +3,17 @@ import { CONTENT_CSS } from './styles.js';
 export interface ButtonController {
   element: HTMLElement;
   setBusy(busy: boolean): void;
+  focus(): void;
   remove(): void;
 }
 
 /**
  * Create a Shadow-DOM-hosted button. The host element is what you attach to the
  * page; the shadow tree owns the styles so Gmail/Outlook CSS can't bleed in.
+ *
+ * Busy state swaps the sparkle for a spinning glyph via CSS — no extra DOM.
+ * `aria-live` region inside the shadow announces state changes to screen
+ * readers without visual noise.
  */
 export function createButton(onClick: () => void): ButtonController {
   const host = document.createElement('span');
@@ -23,6 +28,7 @@ export function createButton(onClick: () => void): ButtonController {
   const button = document.createElement('button');
   button.className = 'df-button';
   button.type = 'button';
+  button.setAttribute('aria-label', 'De-Fluff this email');
 
   const icon = document.createElement('span');
   icon.className = 'df-icon';
@@ -35,18 +41,29 @@ export function createButton(onClick: () => void): ButtonController {
   button.appendChild(icon);
   button.appendChild(label);
 
+  const liveRegion = document.createElement('span');
+  liveRegion.className = 'df-sr-only';
+  liveRegion.setAttribute('aria-live', 'polite');
+
   button.addEventListener('click', (event) => {
     event.preventDefault();
     event.stopPropagation();
     onClick();
   });
+
   shadow.appendChild(button);
+  shadow.appendChild(liveRegion);
 
   return {
     element: host,
     setBusy(busy) {
       button.setAttribute('aria-busy', String(busy));
       button.disabled = busy;
+      icon.textContent = busy ? '↻' : '✦';
+      liveRegion.textContent = busy ? 'Summarizing…' : '';
+    },
+    focus() {
+      button.focus();
     },
     remove() {
       host.remove();

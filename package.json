@@ -18,6 +18,10 @@
     "dev": "pnpm -r --parallel dev",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
   }
 }

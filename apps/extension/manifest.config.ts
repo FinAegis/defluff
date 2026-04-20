@@ -21,12 +21,23 @@ const PROVIDER_HOSTS = [
   'https://generativelanguage.googleapis.com/*',
 ] as const;
 
+const ICONS = {
+  '16': 'icons/icon-16.png',
+  '32': 'icons/icon-32.png',
+  '48': 'icons/icon-48.png',
+  '128': 'icons/icon-128.png',
+} as const;
+
 export default defineManifest({
   manifest_version: 3,
   name: 'Defluff',
   version: '0.0.1',
   description: 'Strip AI-generated padding from emails. Your keys, your models, no servers.',
-  action: { default_title: 'Defluff' },
+  icons: ICONS,
+  action: {
+    default_title: 'Defluff',
+    default_icon: ICONS,
+  },
   options_ui: { page: 'src/options/index.html', open_in_tab: true },
   background: { service_worker: 'src/background.ts', type: 'module' },
   permissions: ['storage'],

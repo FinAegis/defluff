@@ -16,12 +16,19 @@ The `dev` script starts Vite with HMR. Then load the unpacked extension:
 3. Click **Load unpacked**, pick `apps/extension/dist`
 4. Open the options page (Details → Extension options) and configure a provider
 
+## Regenerating icons
+
+Icons live in `public/icons/` and are generated from `assets/icon.svg` at the repo root:
+
+```bash
+pnpm icons   # writes 16/32/48/128 PNGs to apps/extension/public/icons/
+```
+
 ## Known TODOs before Chrome Web Store submission
 
-- **Icons**: the manifest currently omits `icons`. Add 16/48/128 PNGs in `public/icons/` and reference from `manifest.config.ts`.
-- **Gmail DOM selectors** in `src/content/hosts/gmail.ts` are a best-effort starting point. Validate against live Gmail and update `MESSAGE_SELECTOR` / `BODY_SELECTOR` as Gmail reshuffles its DOM (frequent).
+- **Gmail DOM selectors** in `src/content/hosts/gmail.ts` are a best-effort starting point. Validate against live Gmail and update the `bodySelector` + `findAnchor` strategy when Gmail reshuffles its DOM.
 - **Outlook Web DOM selectors** in `src/content/hosts/outlook.ts` likewise need live validation.
-- **Optional host permissions** for OpenAI-compatible endpoints: the current manifest allows any `http`/`https` under `optional_host_permissions`. Consider prompting the user to grant the specific host instead of leaving it open-ended.
+- **Store screenshots**: Chrome Web Store wants 1280x800 promo shots; Edge Add-ons wants 1366x768. Capture once the extension is verified against live Gmail/Outlook.
 
 ## Architecture
 

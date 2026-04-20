@@ -19,9 +19,16 @@ pnpm --filter @defluff/outlook-addin dev        # starts Vite on https://localho
 
 For desktop Outlook on Windows, install the manifest via **File → Options → Trust Center → Trust Center Settings → Trusted Add-in Catalogs** (shared network path) or use the [Microsoft 365 admin center](https://admin.microsoft.com) for org-wide deployment.
 
+## Regenerating icons
+
+Icons live in `public/icons/` (Vite serves them at `https://localhost:3000/icons/*` in dev) and are generated from `assets/icon.svg` at the repo root:
+
+```bash
+pnpm icons   # writes 16/32/64/80/128 PNGs to apps/outlook-addin/public/icons/
+```
+
 ## Known TODOs before AppSource / production
 
-- **Icons**: manifest references `https://localhost:3000/icons/icon-{16,32,64,80,128}.png`. Add them to a `public/icons/` directory (Vite serves `public/` at root) before production.
 - **Stable hosting URL**: replace every `https://localhost:3000` in `manifest.xml` with the production URL.
 - **Replace the Id GUID**: the current one is a dev-only placeholder. Generate a real GUID.
 - **AppSource validation**: Microsoft validates manifests strictly. Run `npx office-addin-manifest validate manifest.xml` before submission.

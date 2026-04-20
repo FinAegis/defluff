@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defluff</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Defluff</h1>
+        <p class="lede" id="status">Loading…</p>
+      </header>
+
+      <section id="config" hidden>
+        <h2>Configure a provider</h2>
+        <p>Defluff calls your chosen LLM directly — no FinAegis server. Your key stays in Office roaming settings.</p>
+
+        <label>
+          Provider
+          <select id="kind">
+            <option value="anthropic">Anthropic Claude</option>
+            <option value="openai">OpenAI</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="openai-compatible">OpenAI-compatible (Ollama, LM Studio, custom)</option>
+          </select>
+        </label>
+
+        <label id="baseurl-field" hidden>
+          Base URL
+          <input id="baseurl" type="url" placeholder="http://localhost:11434/v1" />
+        </label>
+
+        <label>
+          API key
+          <input id="apikey" type="password" autocomplete="off" placeholder="paste your key" />
+        </label>
+
+        <label>
+          Model <small>(optional)</small>
+          <input id="model" type="text" placeholder="default model for the provider" />
+        </label>
+
+        <div class="actions">
+          <button id="save" type="button">Save</button>
+          <button id="clear" type="button" class="secondary">Clear</button>
+          <span id="save-status" class="status-msg"></span>
+        </div>
+      </section>
+
+      <section id="work" hidden>
+        <button id="run" type="button" class="primary">De-Fluff this email</button>
+        <div id="result" class="result" hidden>
+          <h2>Key points</h2>
+          <ul id="bullets"></ul>
+        </div>
+        <div id="error" class="error" hidden></div>
+        <p class="settings-link">
+          <button id="edit-config" type="button" class="link">Change provider…</button>
+        </p>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

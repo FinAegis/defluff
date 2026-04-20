@@ -97,11 +97,16 @@ function extractVerdictLine(
   return undefined;
 }
 
+// "Bullet: ...", "Point 1: ...", "Item - ...", "Note: ..." — LLMs sometimes
+// add these meta-labels even though the bullet marker already exists. Strip
+// them so the rendered list reads cleanly regardless.
+const META_PREFIX = /^(?:bullets?|points?|items?|notes?|facts?)\s*\d*\s*[:\-—]\s*/i;
+
 function extractBullet(line: string): string | undefined {
   for (const pattern of BULLET_PATTERNS) {
     const match = pattern.exec(line);
     if (match && match[1]) {
-      return match[1].trim();
+      return match[1].replace(META_PREFIX, '').trim();
     }
   }
   return undefined;

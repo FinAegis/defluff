@@ -91,6 +91,28 @@ describe('parseSummary', () => {
     }
   });
 
+  it('strips meta-labels that LLMs sometimes add inside bullets', () => {
+    const raw = [
+      '- Bullet: Deadline is Friday',
+      '- Point 1: Budget capped at $5k',
+      '- Item - Legal sign-off needed',
+      '- Note: Jane is out next week',
+      '- This one is fine',
+    ].join('\n');
+    expect(parseBullets(raw)).toEqual([
+      'Deadline is Friday',
+      'Budget capped at $5k',
+      'Legal sign-off needed',
+      'Jane is out next week',
+      'This one is fine',
+    ]);
+  });
+
+  it('does not strip non-meta words that happen to start a bullet', () => {
+    const raw = '- Labels on the logos are wrong';
+    expect(parseBullets(raw)).toEqual(['Labels on the logos are wrong']);
+  });
+
   it('still parses when prompt / verdict lines are missing', () => {
     const raw = '- Send deck by Friday\n- Hold logos';
     const summary = parseSummary(raw);

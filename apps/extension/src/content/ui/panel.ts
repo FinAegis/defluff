@@ -1,4 +1,5 @@
 import type { Summary, Verdict } from '@defluff/core';
+import { formatReversedPrompt, VERDICT_ICONS, VERDICT_LABELS } from '@defluff/core';
 import { CONTENT_CSS } from './styles.js';
 
 export interface PanelController {
@@ -19,20 +20,6 @@ export interface PanelOptions {
   onShowOriginal?: () => void;
   onDismiss?: () => void;
 }
-
-const VERDICT_LABELS: Record<Verdict, string> = {
-  actionable: 'Actionable',
-  'response-needed': 'Response needed',
-  fyi: 'FYI',
-  noise: 'Noise',
-};
-
-const VERDICT_ICONS: Record<Verdict, string> = {
-  actionable: '⚡',
-  'response-needed': '💬',
-  fyi: 'ℹ',
-  noise: '🗑',
-};
 
 export function createPanel(opts: PanelOptions): PanelController {
   const host = document.createElement('div');
@@ -105,6 +92,20 @@ function renderError(panel: HTMLElement, error: PanelError): void {
 }
 
 function renderSummary(panel: HTMLElement, summary: Summary): void {
+  const hasContent = !!summary.reversedPrompt || !!summary.verdict || summary.bullets.length > 0;
+
+  if (!hasContent) {
+    // Defensive: should never happen (summarize() throws on empty with non-noise
+    // verdict), but render a graceful fallback instead of an empty panel.
+    const heading = document.createElement('h3');
+    heading.textContent = 'No summary';
+    panel.appendChild(heading);
+    const p = document.createElement('p');
+    p.textContent = 'The model did not return a usable summary for this email. Try again or switch models.';
+    panel.appendChild(p);
+    return;
+  }
+
   if (summary.reversedPrompt) {
     panel.appendChild(buildPromptBlock(summary.reversedPrompt));
   }
@@ -146,7 +147,7 @@ function buildPromptBlock(reversedPrompt: string): HTMLElement {
 
   const text = document.createElement('p');
   text.className = 'df-prompt-text';
-  text.textContent = `“${reversedPrompt}”`;
+  text.textContent = formatReversedPrompt(reversedPrompt);
   block.appendChild(text);
 
   return block;

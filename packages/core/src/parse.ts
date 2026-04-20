@@ -52,8 +52,8 @@ export function parseSummary(raw: string): Summary {
 }
 
 /**
- * Backward-compatible helper that returns just the bullet list from a raw
- * response. Used by callers that don't yet consume the verdict / prompt.
+ * @deprecated Prefer `parseSummary` which also extracts the reversed prompt
+ * and verdict. Kept only for backward compatibility with older callers.
  */
 export function parseBullets(raw: string): string[] {
   return parseSummary(raw).bullets;
@@ -84,10 +84,14 @@ function extractVerdictLine(
   for (const key of SORTED_VERDICT_KEYS) {
     if (!upper.startsWith(key)) continue;
     const boundary = upper.charAt(key.length);
-    if (boundary !== '' && !/[\s—–\-:,]/.test(boundary)) continue;
+    // Boundary is valid when it's empty OR any non-alphanumeric character.
+    // Excluding only letters/digits lets common sentence punctuation
+    // (period, semicolon, parenthesis) act as a separator, which the LLM
+    // uses frequently ("Verdict: NOISE. Generic recruiter pitch").
+    if (boundary !== '' && /[A-Z0-9]/.test(boundary)) continue;
     const verdict = VERDICT_MAP[key];
     if (!verdict) continue;
-    const reason = rest.slice(key.length).replace(/^[\s—–\-:,]+/, '').trim();
+    const reason = rest.slice(key.length).replace(/^[\s—–\-:,.;]+/, '').trim();
     return reason ? { verdict, reason } : { verdict };
   }
   return undefined;

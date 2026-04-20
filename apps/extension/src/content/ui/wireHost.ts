@@ -132,7 +132,7 @@ function wireTarget(
     button.setBusy(true);
 
     const emailText = body.innerText.trim();
-    let response: SummarizeResponse;
+    let response: SummarizeResponse | undefined;
     try {
       response = await chrome.runtime.sendMessage({ type: MSG_SUMMARIZE, text: emailText });
     } catch (err) {
@@ -144,16 +144,24 @@ function wireTarget(
 
     button.setBusy(false);
 
-    if (!body.isConnected || !body.parentElement) return;
+    // Defensive: sendMessage can resolve with undefined if the service worker
+    // terminated mid-flight before calling sendResponse. Treat as a generic
+    // network-class failure rather than crashing on `response.ok`.
+    if (!response || typeof response !== 'object' || !('ok' in response)) {
+      response = { ok: false, error: 'No response from the extension. Try again.' };
+    }
 
+    // Body may have been reparented while we waited on the LLM. Pick a
+    // rendering strategy that still shows the result somewhere visible.
+    const bodyConnected = body.isConnected && !!body.parentElement;
     originalDisplay = body.style.display;
-    if (response.ok) body.style.display = 'none';
+    if (response.ok && bodyConnected) body.style.display = 'none';
 
     const restore = (): void => {
-      body.style.display = originalDisplay;
+      if (bodyConnected) body.style.display = originalDisplay;
       activePanel?.remove();
       activePanel = null;
-      button.focus();
+      if (button.element.isConnected) button.focus();
     };
 
     const panel = createPanel({
@@ -162,7 +170,21 @@ function wireTarget(
       ...(response.ok ? { onShowOriginal: restore } : {}),
       onDismiss: restore,
     });
-    body.parentElement.insertBefore(panel.element, body);
+
+    if (bodyConnected) {
+      body.parentElement!.insertBefore(panel.element, body);
+    } else {
+      // Fallback: float the panel over the page so the user sees *something*
+      // rather than a silently-dead spinner when the email view reflows.
+      panel.element.classList.add('df-floating');
+      panel.element.style.position = 'fixed';
+      panel.element.style.top = '16px';
+      panel.element.style.right = '16px';
+      panel.element.style.zIndex = '2147483647';
+      panel.element.style.maxWidth = 'min(440px, calc(100vw - 32px))';
+      document.body.appendChild(panel.element);
+    }
+
     panel.focus();
     activePanel = panel;
   };

@@ -17,6 +17,7 @@ export {
 export { summarize } from './summarize.js';
 export { toUserError } from './user-errors.js';
 export type { UserError, UserErrorAction } from './user-errors.js';
+export { formatReversedPrompt, VERDICT_ICONS, VERDICT_LABELS } from './verdict.js';
 export { DEFAULT_HOSTS_CONFIG } from './types.js';
 export type {
   AnthropicConfig,

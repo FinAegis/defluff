@@ -19,7 +19,8 @@
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "skill:publish": "node scripts/publish-skill.mjs"
   },
   "devDependencies": {
     "sharp": "^0.34.5"

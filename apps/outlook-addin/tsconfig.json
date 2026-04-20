@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["office-js", "vite/client"],
+    "paths": {
+      "@defluff/core": ["../../packages/core/src/index.ts"],
+      "@defluff/core/*": ["../../packages/core/src/*"]
+    }
+  },
+  "include": ["src/**/*", "vite.config.ts"]
+}

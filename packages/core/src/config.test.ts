@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildProviderConfig, isProviderConfig, isProviderKind } from './config.js';
+import { buildProviderConfig, isHostsConfig, isProviderConfig, isProviderKind } from './config.js';
 
 describe('isProviderKind', () => {
   it('accepts known kinds', () => {
@@ -90,5 +90,19 @@ describe('buildProviderConfig', () => {
         baseUrl: '',
       }),
     ).toThrow(/base URL/i);
+  });
+});
+
+describe('isHostsConfig', () => {
+  it('accepts objects with all three boolean fields', () => {
+    expect(isHostsConfig({ gmail: true, outlook: true, linkedin: false })).toBe(true);
+    expect(isHostsConfig({ gmail: false, outlook: false, linkedin: true })).toBe(true);
+  });
+
+  it('rejects malformed values', () => {
+    expect(isHostsConfig({ gmail: true, outlook: true })).toBe(false);
+    expect(isHostsConfig({ gmail: true, outlook: true, linkedin: 'yes' })).toBe(false);
+    expect(isHostsConfig({})).toBe(false);
+    expect(isHostsConfig(null)).toBe(false);
   });
 });

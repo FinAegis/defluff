@@ -1,4 +1,4 @@
-import { defineManifest } from '@crxjs/vite-plugin';
+import { defineManifest, type ManifestV3Export } from '@crxjs/vite-plugin';
 
 // Host-scoped permissions only — never `<all_urls>`. The Chrome Web Store will
 // reject an email-scoped extension that asks for access to every page, and
@@ -8,6 +8,13 @@ const EMAIL_HOSTS = [
   'https://outlook.office.com/*',
   'https://outlook.office365.com/*',
   'https://outlook.live.com/*',
+] as const;
+
+// LinkedIn messaging lives here. Granted on demand via the options page's
+// "LinkedIn" toggle, not at install — so normal users don't see the LinkedIn
+// permission warning unless they actually want the feature.
+const OPTIONAL_HOSTS = [
+  'https://www.linkedin.com/*',
 ] as const;
 
 // The service worker fetches LLM provider APIs. These hosts must be in
@@ -28,6 +35,10 @@ const ICONS = {
   '128': 'icons/icon-128.png',
 } as const;
 
+// @crxjs/vite-plugin 2.0 beta types don't include optional_host_permissions
+// yet, so widen the inferred shape to accept it.
+type Manifest = ManifestV3Export & { optional_host_permissions?: readonly string[] };
+
 export default defineManifest({
   manifest_version: 3,
   name: 'Defluff',
@@ -42,11 +53,12 @@ export default defineManifest({
   background: { service_worker: 'src/background.ts', type: 'module' },
   permissions: ['storage'],
   host_permissions: [...EMAIL_HOSTS, ...PROVIDER_HOSTS],
+  optional_host_permissions: [...OPTIONAL_HOSTS],
   content_scripts: [
     {
-      matches: [...EMAIL_HOSTS],
+      matches: [...EMAIL_HOSTS, ...OPTIONAL_HOSTS],
       js: ['src/content/index.ts'],
       run_at: 'document_idle',
     },
   ],
-});
+} as Manifest);

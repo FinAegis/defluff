@@ -1,5 +1,5 @@
 import { PROVIDER_DEFAULT_MODELS, PROVIDER_KINDS } from './providers/index.js';
-import type { ProviderConfig, ProviderKind } from './types.js';
+import type { HostsConfig, ProviderConfig, ProviderKind } from './types.js';
 
 export interface ProviderConfigInput {
   kind: ProviderKind;
@@ -49,4 +49,14 @@ export function isProviderKind(value: unknown): value is ProviderKind {
 
 export function isProviderConfig(value: unknown): value is ProviderConfig {
   return !!value && typeof value === 'object' && isProviderKind((value as { kind?: unknown }).kind);
+}
+
+export function isHostsConfig(value: unknown): value is HostsConfig {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.gmail === 'boolean' &&
+    typeof v.outlook === 'boolean' &&
+    typeof v.linkedin === 'boolean'
+  );
 }

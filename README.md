@@ -4,15 +4,21 @@
 
 # Defluff
 
-**AI wrote this email. Have AI read it.**
+**AI wrote this email. Let's see what they actually wanted.**
 
-Strip AI-generated padding from Gmail and Outlook into 3–5 bullets of actual intent.
-Zero servers, your keys, your models.
+Reverse the AI behind corporate email: infer the prompt the sender gave their LLM,
+classify the message, surface the real ask. Zero servers, your keys, your models.
 
 [![CI](https://github.com/FinAegis/defluff/actions/workflows/ci.yml/badge.svg)](https://github.com/FinAegis/defluff/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen.svg)](SECURITY.md)
 [![BYOK](https://img.shields.io/badge/keys-your%20own-orange.svg)](#providers)
+
+<br>
+
+<img src="docs/screenshot.jpg" width="640" alt="Defluff showing a reversed AI prompt, NOISE verdict, and bullet specifics for a sales outreach email">
+
+<sub>A real sales-outreach email, defluffed — the reversed prompt gives it away in one line.</sub>
 
 </div>
 
@@ -22,7 +28,13 @@ Zero servers, your keys, your models.
 
 Corporate email has become unreadable. Half of every message is AI-generated filler, restated context, and *"I hope this finds you well."*
 
-Defluff is a browser extension and Outlook add-in that replaces the body of an open email with 3–5 bullets of what the sender actually wants. One click. *"Show original"* is one click away.
+Defluff is a browser extension and Outlook add-in that replaces the body of an open email with:
+
+1. **The reversed prompt** — one line naming what the sender probably asked an AI to write ("Pitch our DevOps services and offer a free infrastructure review"). Often this is all you need.
+2. **A verdict** — Actionable / Response needed / FYI / Noise, with scam-pattern naming for LinkedIn-grade spam (fake recruiter, conference scam, crypto pitch, phishing).
+3. **3–5 bullets** — the actual specifics, preserved verbatim.
+
+*"Show original"* is one click away if you want the full email back.
 
 The interesting part isn't the summarization — that's just an LLM call with a restrictive prompt. The interesting part is the **trust model**: there is no Defluff backend. Your email body and your API key never leave your browser for any infrastructure we operate. Each De-Fluff click goes straight from your browser to the LLM provider you picked. Zero retention isn't a policy, it's the architecture.
 
@@ -58,8 +70,6 @@ Prose collapses into bullets.
 </td>
 </tr>
 </table>
-
-<sub>Before/after screenshot coming once we've tested against live Gmail — help us by trying it!</sub>
 
 ---
 

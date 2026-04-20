@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["chrome", "vite/client"],
+    "paths": {
+      "@defluff/core": ["../../packages/core/src/index.ts"],
+      "@defluff/core/*": ["../../packages/core/src/*"]
+    }
+  },
+  "include": ["src/**/*", "manifest.config.ts", "vite.config.ts"]
+}

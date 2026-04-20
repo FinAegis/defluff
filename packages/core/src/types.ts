@@ -35,6 +35,23 @@ export interface Summary {
   bullets: string[];
 }
 
+/**
+ * Which email/messaging hosts should show the De-Fluff button. Gmail and
+ * Outlook are on by default; LinkedIn is opt-in because its host permission
+ * requires an extra prompt (see `optional_host_permissions` in the manifest).
+ */
+export interface HostsConfig {
+  gmail: boolean;
+  outlook: boolean;
+  linkedin: boolean;
+}
+
+export const DEFAULT_HOSTS_CONFIG: HostsConfig = {
+  gmail: true,
+  outlook: true,
+  linkedin: false,
+};
+
 export interface SummarizeOptions {
   text: string;
   provider: ProviderConfig;

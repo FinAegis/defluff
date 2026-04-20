@@ -1,5 +1,6 @@
 export {
   buildProviderConfig,
+  isHostsConfig,
   isProviderConfig,
   isProviderKind,
 } from './config.js';
@@ -14,9 +15,11 @@ export {
   PROVIDER_LABELS,
 } from './providers/index.js';
 export { summarize } from './summarize.js';
+export { DEFAULT_HOSTS_CONFIG } from './types.js';
 export type {
   AnthropicConfig,
   GeminiConfig,
+  HostsConfig,
   OpenAICompatibleConfig,
   OpenAIConfig,
   ProviderAdapter,

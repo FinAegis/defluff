@@ -2,6 +2,14 @@ import { DefluffError, summarize } from '@defluff/core';
 import { MSG_SUMMARIZE, type AppRequest, type SummarizeResponse } from './shared/messages.js';
 import { getProviderConfig } from './shared/storage.js';
 
+// Open the options page on fresh install so users land directly on the
+// provider-configuration screen instead of having to discover it.
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') {
+    void chrome.runtime.openOptionsPage();
+  }
+});
+
 // Toolbar icon click opens the options page. With no default_popup set, this
 // listener fires on every click. The options UI is the "settings" surface —
 // summarization itself lives on the inline De-Fluff button injected into Gmail

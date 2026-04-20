@@ -11,8 +11,9 @@ const TRIGGERS = new WeakMap<HTMLElement, () => void>();
 
 export interface HostStrategy {
   /**
-   * Selector for a "wire-eligible" message body. The caller does not need to
-   * include the marker — wireHost appends `:not([data-defluff-wired])`.
+   * Selector for a "wire-eligible" message body. May contain comma-separated
+   * alternatives — the caller does not need to include the marker filter;
+   * wireHost applies `:not([data-defluff-wired])` to every entry.
    */
   bodySelector: string;
   /**
@@ -29,6 +30,12 @@ export interface HostStrategy {
    * below the message, away from the profile picture.
    */
   insertAs?: 'first' | 'last';
+  /**
+   * Per-host style tweaks applied to the Shadow DOM host element after it's
+   * created. Hosts like LinkedIn use this to indent the button past the
+   * avatar column.
+   */
+  decorateButton?(host: HTMLElement): void;
 }
 
 /**
@@ -43,15 +50,23 @@ export interface HostStrategy {
 export function startHost(strategy: HostStrategy): () => void {
   let pending = false;
 
+  // Apply the :not([marker]) filter to EVERY entry in the comma-separated
+  // selector list. Appending it to the full string only scopes it to the
+  // final entry in CSS grammar, which caused wired elements to match again
+  // on every MutationObserver tick.
+  const scopedSelector = strategy.bodySelector
+    .split(/\s*,\s*/)
+    .filter(Boolean)
+    .map((s) => `${s}:not([${MARKER}])`)
+    .join(', ');
+
   const scan = (): void => {
-    const bodies = document.querySelectorAll<HTMLElement>(
-      `${strategy.bodySelector}:not([${MARKER}])`,
-    );
+    const bodies = document.querySelectorAll<HTMLElement>(scopedSelector);
     if (bodies.length === 0) return;
     for (const body of bodies) {
       body.setAttribute(MARKER, 'true');
       const anchor = strategy.findAnchor(body);
-      wireTarget(body, anchor, strategy.insertAs ?? 'first');
+      wireTarget(body, anchor, strategy.insertAs ?? 'first', strategy.decorateButton);
     }
   };
 
@@ -118,6 +133,7 @@ function wireTarget(
   body: HTMLElement,
   anchor: HTMLElement,
   insertAs: 'first' | 'last',
+  decorateButton?: (host: HTMLElement) => void,
 ): void {
   let activePanel: { remove: () => void; focus: () => void } | null = null;
   let originalDisplay = '';
@@ -192,6 +208,7 @@ function wireTarget(
   button = createButton(() => {
     void trigger();
   });
+  decorateButton?.(button.element);
   TRIGGERS.set(button.element, () => void trigger());
   if (insertAs === 'last') {
     anchor.appendChild(button.element);

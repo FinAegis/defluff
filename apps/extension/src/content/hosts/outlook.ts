@@ -1,23 +1,16 @@
 import { startHost } from '../ui/wireHost.js';
 
-// Outlook Web's most stable anchor is the `UniqueMessageBody_N` id pattern
-// on each expanded message's body div. Language-neutral and the id prefix
-// has survived multiple Outlook UI rewrites. The English aria-label and the
-// leaf role=document selectors are kept as fallbacks for cases where the
-// id pattern ever changes.
+// Outlook Web's message body always has an `id` starting with
+// `UniqueMessageBody_`. Verified live on outlook.office.com (Lithuanian
+// locale) with both single and threaded conversation views:
+//   <div id="UniqueMessageBody_1" role="document" ...>
+//   <div id="UniqueMessageBody_5" role="document" ...>
 //
-// Last audited: 2026-04-20 against outlook.office.com (Lithuanian locale).
-// Live-verified DOM: <div id="UniqueMessageBody_5" role="document"
-// aria-label="Pranešimo tekstas" class="OuGoX BIZfh">
-const BODY_SELECTOR = [
-  '[role="main"] [id^="UniqueMessageBody"]',
-  '[role="main"] [aria-label*="Message body"]',
-  '[role="main"] [role="document"]:not(:has([role="document"]))',
-].join(', ');
-
+// This id prefix is language-neutral and has outlasted multiple Outlook UI
+// revamps. Any future regression: re-audit and update in place.
 export function startOutlook(): void {
   startHost({
-    bodySelector: BODY_SELECTOR,
+    bodySelector: '[role="main"] [id^="UniqueMessageBody"]',
     findAnchor: (body) => body.parentElement ?? body,
   });
 }

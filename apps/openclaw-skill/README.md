@@ -31,3 +31,13 @@ Once installed, invoke with a chat prompt like:
 > /defluff [paste email here]
 
 Or (with `user-invocable: true`, which is set in the frontmatter) as a slash command in Openclaw's chat interface.
+
+The skill handles three input shapes:
+
+| Input | Output |
+|---|---|
+| **Single email** | 3–5 bullets in priority order (actions → questions → facts → intent) |
+| **Thread** (multiple messages, same conversation) | Per-message bullets + consolidated **Actions** section with attribution |
+| **Batch** (unrelated emails) | Per-email bullets + **Triage** section (Act now / Reply needed / FYI / Noise) |
+
+Noise (newsletters, auto-replies, automated system mail without actionable content, generic recruiter outreach) collapses to a single labelled bullet. The skill will ask "single, thread, or batch?" if the input is ambiguous.

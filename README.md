@@ -65,9 +65,33 @@ Prose collapses into bullets.
 
 ## Install
 
-> **Status:** pre-alpha. Store listings (Chrome Web Store / Edge / Firefox AMO / AppSource / ClawHub) arrive after the live-testing pass. Track progress in [#7](https://github.com/FinAegis/defluff/issues/7).
+### Available now
 
-**For developers right now:**
+<table>
+<tr>
+<td>
+
+**[ClawHub](https://clawhub.ai/yozaz/defluff)** — Openclaw skill
+
+</td>
+<td>
+
+```bash
+openclaw skills install defluff
+```
+
+</td>
+</tr>
+</table>
+
+### Coming soon (pending live-testing — track in [#7](https://github.com/FinAegis/defluff/issues/7))
+
+- Chrome Web Store — browser extension for Gmail / Outlook Web / LinkedIn Messaging
+- Edge Add-ons — same build
+- Firefox AMO — same build
+- Microsoft AppSource — Outlook add-in (desktop + web)
+
+### For developers right now
 
 ```bash
 git clone https://github.com/FinAegis/defluff.git
@@ -147,7 +171,7 @@ A pnpm monorepo. TypeScript end to end. Vite for bundling.
 | [`packages/core`](packages/core) | Extraction prompt, 4 provider adapters, bullet parser, typed errors. Pure TS, no platform APIs. |
 | [`apps/extension`](apps/extension) | MV3 extension for Chrome/Edge/Firefox. React options page, Shadow-DOM-hosted content UI so host-page CSS can't bleed in. |
 | [`apps/outlook-addin`](apps/outlook-addin) | Office.js add-in. Plain-TS task pane, zero runtime deps. |
-| [`apps/openclaw-skill`](apps/openclaw-skill) | A single `SKILL.md` (markdown + YAML) for the [Openclaw](https://openclaw.ai) agent platform. |
+| [`apps/openclaw-skill`](apps/openclaw-skill) | A single `SKILL.md` (markdown + YAML) for the [Openclaw](https://openclaw.ai) agent platform — published to [ClawHub](https://clawhub.ai/yozaz/defluff). |
 
 Provider adapters use plain `fetch()` — no SDKs in the bundle — to keep client bundles small and the audit surface minimal.
 

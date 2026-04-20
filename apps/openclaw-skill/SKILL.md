@@ -2,7 +2,7 @@
 name: defluff
 displayName: Defluff
 description: Reverse the AI in corporate email. Guess the prompt the sender probably gave an LLM, classify the email, and extract the actual intent. Handles single messages, threads, and batches, with noise/scam detection.
-version: 0.0.4
+version: 0.0.5
 user-invocable: true
 ---
 
@@ -110,6 +110,8 @@ Verdict: NOISE — likely fake recruiter
 ## Hard rules
 
 - Never summarize what the email "is about" in prose. Bullets only, in the specified format.
+- **Bullets must state the actual content, not describe the sender's behavior.** Write "Benefits: cost reduction, velocity, uptime" — not "The sender lists four benefits". Write "Meeting proposed Tue 3pm" — not "The sender proposes a meeting time".
+- **Never prefix a bullet with a meta-label like "Bullet:", "Point:", "Item:", "Note:".** The bullet marker already shows it's a bullet.
 - Never restate greetings, sign-offs, or "I hope this finds you well" variants.
 - Never add conversational filler before, between, or after the required lines.
 - Preserve numbers, dates, names, and amounts verbatim in the bullets.

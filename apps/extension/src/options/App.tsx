@@ -1,22 +1,14 @@
-import { PROVIDER_KINDS, type ProviderConfig, type ProviderKind } from '@defluff/core';
+import {
+  PROVIDER_DEFAULT_MODELS,
+  PROVIDER_KINDS,
+  PROVIDER_LABELS,
+  type ProviderConfig,
+  type ProviderKind,
+} from '@defluff/core';
 import { useEffect, useState } from 'react';
 import { clearProviderConfig, getProviderConfig, setProviderConfig } from '../shared/storage.js';
 
 type Status = 'idle' | 'saving' | 'saved' | 'error';
-
-const PROVIDER_LABELS: Record<ProviderKind, string> = {
-  anthropic: 'Anthropic Claude',
-  openai: 'OpenAI',
-  gemini: 'Google Gemini',
-  'openai-compatible': 'OpenAI-compatible (Ollama, LM Studio, custom)',
-};
-
-const DEFAULT_MODELS: Record<ProviderKind, string> = {
-  anthropic: 'claude-haiku-4-5-20251001',
-  openai: 'gpt-4o-mini',
-  gemini: 'gemini-2.5-flash',
-  'openai-compatible': 'llama3',
-};
 
 export function App() {
   const [kind, setKind] = useState<ProviderKind>('anthropic');
@@ -113,7 +105,7 @@ export function App() {
             type="text"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder={DEFAULT_MODELS[kind]}
+            placeholder={PROVIDER_DEFAULT_MODELS[kind]}
           />
         </label>
 
@@ -170,7 +162,7 @@ function buildConfig(input: {
       return {
         kind: 'openai-compatible',
         baseUrl: input.baseUrl.trim(),
-        model: trimmedModel || DEFAULT_MODELS['openai-compatible'],
+        model: trimmedModel || PROVIDER_DEFAULT_MODELS['openai-compatible'],
         ...(input.apiKey.trim() ? { apiKey: input.apiKey.trim() } : {}),
       };
   }

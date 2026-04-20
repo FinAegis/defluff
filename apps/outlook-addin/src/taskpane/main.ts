@@ -1,5 +1,6 @@
 import {
   DefluffError,
+  PROVIDER_DEFAULT_MODELS,
   type ProviderConfig,
   type ProviderKind,
   summarize,
@@ -10,13 +11,6 @@ import {
   getProviderConfig,
   setProviderConfig,
 } from '../shared/storage.js';
-
-const DEFAULT_MODELS: Record<ProviderKind, string> = {
-  anthropic: 'claude-haiku-4-5-20251001',
-  openai: 'gpt-4o-mini',
-  gemini: 'gemini-2.5-flash',
-  'openai-compatible': 'llama3',
-};
 
 Office.onReady(() => {
   wireUi();
@@ -82,7 +76,7 @@ function syncProviderFields(): void {
   baseurlField.hidden = kind !== 'openai-compatible';
   const apiKeyInput = byId<HTMLInputElement>('apikey');
   apiKeyInput.required = kind !== 'openai-compatible';
-  byId<HTMLInputElement>('model').placeholder = DEFAULT_MODELS[kind];
+  byId<HTMLInputElement>('model').placeholder = PROVIDER_DEFAULT_MODELS[kind];
 }
 
 async function handleSave(): Promise<void> {
@@ -187,7 +181,7 @@ function buildConfig(input: {
       return {
         kind: 'openai-compatible',
         baseUrl: input.baseUrl,
-        model: input.model || DEFAULT_MODELS['openai-compatible'],
+        model: input.model || PROVIDER_DEFAULT_MODELS['openai-compatible'],
         ...(input.apiKey ? { apiKey: input.apiKey } : {}),
       };
   }

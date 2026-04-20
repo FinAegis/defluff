@@ -16,10 +16,19 @@ export interface HostStrategy {
    */
   bodySelector: string;
   /**
-   * Where should the button be injected for a given body? The button is
-   * prepended (`insertBefore(..., anchor.firstChild)`) into this anchor.
+   * Where should the button be injected for a given body? Combined with
+   * `insertAs` below to decide whether the button prepends or appends inside
+   * this anchor.
    */
   findAnchor(body: HTMLElement): HTMLElement;
+  /**
+   * Insert position inside the anchor: 'first' (prepend) or 'last' (append).
+   * Default is 'first', which works for Gmail and Outlook where the anchor
+   * is the body's parent and we want the button at the top. LinkedIn places
+   * the avatar next to the body, so LinkedIn uses 'last' to land the button
+   * below the message, away from the profile picture.
+   */
+  insertAs?: 'first' | 'last';
 }
 
 /**
@@ -42,7 +51,7 @@ export function startHost(strategy: HostStrategy): () => void {
     for (const body of bodies) {
       body.setAttribute(MARKER, 'true');
       const anchor = strategy.findAnchor(body);
-      wireTarget(body, anchor);
+      wireTarget(body, anchor, strategy.insertAs ?? 'first');
     }
   };
 
@@ -105,7 +114,11 @@ function schedule(cb: () => void): void {
   }
 }
 
-function wireTarget(body: HTMLElement, anchor: HTMLElement): void {
+function wireTarget(
+  body: HTMLElement,
+  anchor: HTMLElement,
+  insertAs: 'first' | 'last',
+): void {
   let activePanel: { remove: () => void; focus: () => void } | null = null;
   let originalDisplay = '';
   let button: ButtonController;
@@ -158,7 +171,11 @@ function wireTarget(body: HTMLElement, anchor: HTMLElement): void {
     void trigger();
   });
   TRIGGERS.set(button.element, () => void trigger());
-  anchor.insertBefore(button.element, anchor.firstChild);
+  if (insertAs === 'last') {
+    anchor.appendChild(button.element);
+  } else {
+    anchor.insertBefore(button.element, anchor.firstChild);
+  }
 }
 
 function buildErrorPayload(

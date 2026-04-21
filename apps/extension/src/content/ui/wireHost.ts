@@ -36,6 +36,13 @@ export interface HostStrategy {
    * avatar column.
    */
   decorateButton?(host: HTMLElement): void;
+  /**
+   * Skip bodies whose text is shorter than this many characters. Used by
+   * LinkedIn to avoid button-stuffing on one-liner chats ("thanks", "ok").
+   * Short bodies are NOT marked as wired, so if the user expands a
+   * truncated message and crosses the threshold, the next scan picks it up.
+   */
+  minBodyChars?: number;
 }
 
 /**
@@ -64,6 +71,14 @@ export function startHost(strategy: HostStrategy): () => void {
     const bodies = document.querySelectorAll<HTMLElement>(scopedSelector);
     if (bodies.length === 0) return;
     for (const body of bodies) {
+      // Length gate: don't mark, so the body re-qualifies if the user
+      // expands a truncated message and pushes it over the threshold.
+      if (
+        strategy.minBodyChars !== undefined &&
+        body.innerText.trim().length < strategy.minBodyChars
+      ) {
+        continue;
+      }
       body.setAttribute(MARKER, 'true');
       const anchor = strategy.findAnchor(body);
       // Anchor-level dedup: Gmail (and probably others) re-renders the body
@@ -142,7 +157,6 @@ function wireTarget(
   decorateButton?: (host: HTMLElement) => void,
 ): void {
   let activePanel: { remove: () => void; focus: () => void } | null = null;
-  let originalDisplay = '';
   let button: ButtonController;
 
   const trigger = async (): Promise<void> => {
@@ -176,11 +190,8 @@ function wireTarget(
     // Body may have been reparented while we waited on the LLM. Pick a
     // rendering strategy that still shows the result somewhere visible.
     const bodyConnected = body.isConnected && !!body.parentElement;
-    originalDisplay = body.style.display;
-    if (response.ok && bodyConnected) body.style.display = 'none';
 
-    const restore = (): void => {
-      if (bodyConnected) body.style.display = originalDisplay;
+    const dismiss = (): void => {
       activePanel?.remove();
       activePanel = null;
       if (button.element.isConnected) button.focus();
@@ -188,12 +199,13 @@ function wireTarget(
 
     const panel = createPanel({
       ...(response.ok ? { summary: response.summary } : {}),
-      ...(response.ok ? {} : { error: buildErrorPayload(response, restore) }),
-      ...(response.ok ? { onShowOriginal: restore } : {}),
-      onDismiss: restore,
+      ...(response.ok ? {} : { error: buildErrorPayload(response, dismiss) }),
+      onDismiss: dismiss,
     });
 
     if (bodyConnected) {
+      // Render above the body, keeping the original visible. The user can
+      // read both, which is better than the hide-and-show-original dance.
       body.parentElement!.insertBefore(panel.element, body);
     } else {
       // Fallback: float the panel over the page so the user sees *something*

@@ -29,7 +29,6 @@ export const CONTENT_CSS = `
 
   --df-shadow: 0 1px 2px rgba(60,64,67,.15);
   --df-prompt-bg: #eef4ff;
-  --df-prompt-accent: #1a73e8;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,7 +51,6 @@ export const CONTENT_CSS = `
 
     --df-shadow: 0 1px 2px rgba(0,0,0,.4);
     --df-prompt-bg: #2a2f36;
-    --df-prompt-accent: #8ab4f8;
   }
 }
 
@@ -96,12 +94,13 @@ export const CONTENT_CSS = `
 }
 .df-panel:focus-visible { outline: 2px solid var(--df-accent); outline-offset: 1px; }
 
-/* Reversed prompt block — the emotional payoff of the product */
+/* Reversed prompt block — the emotional payoff of the product.
+   No left border: the panel already has one, two parallel bars looks busy.
+   The muted uppercase label is enough to signal this is a different block. */
 .df-prompt {
   margin: 0 0 14px;
   padding: 10px 14px;
   background: var(--df-prompt-bg);
-  border-left: 2px solid var(--df-prompt-accent);
   border-radius: 4px;
   display: flex;
   flex-direction: column;
@@ -148,15 +147,6 @@ export const CONTENT_CSS = `
   color: var(--df-fg);
   font-weight: 400;
   font-style: italic;
-}
-
-.df-section-label {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--df-muted);
 }
 
 .df-panel ul { margin: 0; padding-left: 18px; }

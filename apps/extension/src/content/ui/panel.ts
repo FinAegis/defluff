@@ -17,7 +17,6 @@ export interface PanelError {
 export interface PanelOptions {
   summary?: Summary;
   error?: PanelError;
-  onShowOriginal?: () => void;
   onDismiss?: () => void;
 }
 
@@ -50,9 +49,6 @@ export function createPanel(opts: PanelOptions): PanelController {
   actions.className = 'df-actions';
   if (opts.error?.cta) {
     actions.appendChild(makeCta(opts.error.cta.label, opts.error.cta.onClick));
-  }
-  if (opts.onShowOriginal && !isError) {
-    actions.appendChild(makeLink('Show original', opts.onShowOriginal));
   }
   if (opts.onDismiss) {
     actions.appendChild(makeLink('Dismiss', opts.onDismiss));
@@ -115,11 +111,6 @@ function renderSummary(panel: HTMLElement, summary: Summary): void {
   }
 
   if (summary.bullets.length > 0) {
-    const sectionLabel = document.createElement('p');
-    sectionLabel.className = 'df-section-label';
-    sectionLabel.textContent = 'Specifics';
-    panel.appendChild(sectionLabel);
-
     const list = document.createElement('ul');
     for (const bullet of summary.bullets) {
       const li = document.createElement('li');

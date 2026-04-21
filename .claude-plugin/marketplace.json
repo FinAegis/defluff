@@ -13,7 +13,7 @@
       "source": "./apps/claude-skill",
       "description": "Reverse the AI in corporate email: guess the prompt the sender gave an LLM, classify urgency, extract 3–5 bullets of real intent. Detects invoice fraud / BEC, phishing, fake recruiters, and other scam red flags.",
       "version": "0.1.0",
-      "homepage": "https://defluff.app",
+      "homepage": "https://finaegis.github.io/defluff/",
       "repository": "https://github.com/FinAegis/defluff",
       "license": "MIT",
       "keywords": ["email", "summarization", "productivity", "triage", "scam-detection"],

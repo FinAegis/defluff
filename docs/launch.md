@@ -41,7 +41,7 @@ Everything shares one ~500-line `@defluff/core` package that owns the extraction
 Feedback welcome, especially from anyone whose enterprise has banned every mainstream AI summarizer on data-residency grounds. That's who this was built for.
 
 Repo: https://github.com/FinAegis/defluff
-Landing: https://defluff.app (coming)
+Landing: https://finaegis.github.io/defluff/
 
 ---
 

@@ -45,8 +45,12 @@ because none exists.
 - **No backend.** Defluff operates no servers, databases, or queues. The source
   tree contains no hosted infrastructure — you can verify this by auditing
   the repository.
-- **No analytics.** No usage metrics, crash reports, click tracking, feature
-  flags, or A/B testing SDKs are embedded in the extension or add-in.
+- **No analytics in the product.** No usage metrics, crash reports, click
+  tracking, feature flags, or A/B testing SDKs are embedded in the extension
+  or the Outlook add-in. The marketing site at
+  `https://finaegis.github.io/defluff/` uses Google Analytics to count
+  visitors — that applies only to the landing page, not to the extension or
+  add-in, and no email content ever reaches the landing site.
 - **No account.** There is no Defluff sign-up or login.
 - **No retention.** Defluff itself stores nothing beyond your local settings.
   The provider's servers may retain your data according to that provider's

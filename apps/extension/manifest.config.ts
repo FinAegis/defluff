@@ -40,14 +40,29 @@ const ICONS = {
 } as const;
 
 // @crxjs/vite-plugin 2.0 beta types don't include optional_host_permissions
-// yet, so widen the inferred shape to accept it.
-type Manifest = ManifestV3Export & { optional_host_permissions?: readonly string[] };
+// or browser_specific_settings yet, so widen the inferred shape.
+type Manifest = ManifestV3Export & {
+  optional_host_permissions?: readonly string[];
+  browser_specific_settings?: {
+    gecko?: { id: string; strict_min_version?: string };
+  };
+};
 
 export default defineManifest({
   manifest_version: 3,
   name: 'Defluff',
-  version: '0.0.1',
+  version: '0.1.0',
   description: 'Strip AI-generated padding from emails. Your keys, your models, no servers.',
+  // Firefox/AMO requires a stable per-extension id declared in the manifest
+  // (Chrome derives its id from the crx signature). Using an email-shaped id
+  // is the convention. strict_min_version = 109 is the first release with
+  // stable MV3 support.
+  browser_specific_settings: {
+    gecko: {
+      id: 'defluff@finaegis.com',
+      strict_min_version: '109.0',
+    },
+  },
   icons: ICONS,
   action: {
     default_title: 'Defluff',

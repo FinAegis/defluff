@@ -1,8 +1,8 @@
 ---
 name: defluff
 displayName: Defluff
-description: Reverse the AI in corporate email. Guess the prompt the sender probably gave an LLM, classify the email, and extract the actual intent. Handles single messages, threads, and batches, with noise/scam detection.
-version: 0.0.5
+description: Reverse the AI in corporate email. Guess the prompt the sender probably gave an LLM, classify the email, and extract the actual intent. Handles single messages, threads, and batches, with noise/scam detection including invoice fraud / BEC and phishing red flags.
+version: 0.0.6
 user-invocable: true
 ---
 
@@ -38,7 +38,7 @@ Verdict: [ACTIONABLE | RESPONSE-NEEDED | FYI | NOISE] — [one-sentence reason, 
 - bullet 3
 ```
 
-For **NOISE**, skip the bullet list and emit only one bullet describing what kind of noise it is.
+For **scam NOISE** (invoice fraud, BEC, phishing, fake recruiter, etc.), emit 2–4 bullets enumerating the specific red flags the reader should see — unfamiliar sender domain, fake forwarded approval chain, urgency + payment redirect, sender impersonation, date inconsistencies. State them plainly, not as accusations. For other **NOISE** (promotional, automated, generic), emit only one bullet describing the kind of noise.
 
 ### Verdict definitions
 
@@ -53,11 +53,12 @@ For **NOISE**, skip the bullet list and emit only one bullet describing what kin
 
 When the email looks like a common scam or low-quality outreach, name the pattern in the verdict's reason line:
 
+- **"likely invoice fraud"** / **"likely BEC"** — unsolicited payment or late-fee reminder, unknown sender on a lookalike or unfamiliar domain, fake forwarded "approval" chain (often from an address pretending to be the reader), impersonation of someone in the reader's org, urgency paired with a payment redirect
+- **"likely phishing"** — urgent credential/billing request, mismatched sender domain, suspicious link shortener, urgency pressure
 - **"likely fake recruiter"** — generic "amazing opportunity" with no company or role specifics
 - **"likely conference scam"** — invitation to a conference the reader has never engaged with, vague venue, pay-to-speak, URL mismatch
 - **"likely fake interview"** — unverified recruiter asks for a technical interview with no company profile or LinkedIn trail
 - **"crypto / MLM pitch"** — mentions crypto, token launches, multi-level marketing, "passive income"
-- **"phishing"** — urgent credential/billing request, mismatched sender domain, suspicious link shortener
 - **"generic outreach"** — no specifics, clearly a template
 
 ## Handling a thread (multiple messages, same conversation)
@@ -147,4 +148,29 @@ Prompt: "Send a generic cold recruiter outreach that hides the company and role.
 Verdict: NOISE — likely fake recruiter
 
 - Generic pitch with no company name, role, or specifics.
+```
+
+## Example — NOISE, likely invoice fraud / BEC
+
+**Input:**
+
+> From: Vanessa Rogers <vanessa.rogers@ceocoachinginternationalus.net>
+> Subject: FWD: "Marijus Planciunas" Unpaid invoice.
+>
+> Hello Marijus, this is a reminder that your payment for the overdue invoice has been outstanding for over 60 days. Late charges have been accruing since February 28, 2026. Please do not hesitate to contact me.
+>
+> ---------- Forwarded message ---------
+> From: Marijus Planciunas <membership@stamps.org>
+> The invoice is okay and approved for payment. Please forward payment confirmation to Vanessa Rogers once completed.
+
+**Output:**
+
+```
+Prompt: "Write an urgent overdue-invoice reminder and include a fake forwarded approval from the recipient."
+Verdict: NOISE — likely invoice fraud / BEC
+
+- Unknown sender on lookalike domain (ceocoachinginternationalus.net), not a known counterparty.
+- Fake forwarded "approval" from membership@stamps.org impersonating the recipient.
+- Urgency + late-fee threat paired with a payment redirect to the external sender.
+- Date inconsistencies (late fees "accruing since February 28, 2026" vs. a claim of 60+ days overdue).
 ```

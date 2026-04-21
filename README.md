@@ -81,6 +81,21 @@ Prose collapses into bullets.
 <tr>
 <td>
 
+**[Claude Code plugin](apps/claude-skill#readme)** — Anthropic agent surface
+
+</td>
+<td>
+
+```bash
+claude plugin marketplace add FinAegis/defluff
+claude plugin install defluff@finaegis
+```
+
+</td>
+</tr>
+<tr>
+<td>
+
 **[ClawHub](https://clawhub.ai/yozaz/defluff)** — Openclaw skill
 
 </td>
@@ -181,6 +196,7 @@ A pnpm monorepo. TypeScript end to end. Vite for bundling.
 | [`packages/core`](packages/core) | Extraction prompt, 4 provider adapters, bullet parser, typed errors. Pure TS, no platform APIs. |
 | [`apps/extension`](apps/extension) | MV3 extension for Chrome/Edge/Firefox. React options page, Shadow-DOM-hosted content UI so host-page CSS can't bleed in. |
 | [`apps/outlook-addin`](apps/outlook-addin) | Office.js add-in. Plain-TS task pane, zero runtime deps. |
+| [`apps/claude-skill`](apps/claude-skill) | Claude Code plugin (`SKILL.md` + manifest). Distributed via the [FinAegis marketplace](.claude-plugin/marketplace.json) at the repo root — `/plugin install defluff@finaegis`. |
 | [`apps/openclaw-skill`](apps/openclaw-skill) | A single `SKILL.md` (markdown + YAML) for the [Openclaw](https://openclaw.ai) agent platform — published to [ClawHub](https://clawhub.ai/yozaz/defluff). |
 
 Provider adapters use plain `fetch()` — no SDKs in the bundle — to keep client bundles small and the audit surface minimal.

@@ -1,9 +1,0 @@
-<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-  <title>Defluff — sparkle</title>
-  <rect width="128" height="128" rx="28" fill="#1a73e8"/>
-  <g fill="#ffffff">
-    <!-- Large 4-point sparkle, matches the in-product button icon (✦).
-         Most legible option at 16px, but also the most generic AI marker. -->
-    <path d="M 64 18 L 73 55 L 110 64 L 73 73 L 64 110 L 55 73 L 18 64 L 55 55 Z"/>
-  </g>
-</svg>

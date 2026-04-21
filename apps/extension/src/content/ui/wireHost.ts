@@ -37,6 +37,12 @@ export interface HostStrategy {
    */
   decorateButton?(host: HTMLElement): void;
   /**
+   * Same as decorateButton, but for the summary panel host. LinkedIn needs
+   * this to indent the panel past the avatar column so it lines up with the
+   * button and the message text.
+   */
+  decoratePanel?(host: HTMLElement): void;
+  /**
    * Skip bodies whose text is shorter than this many characters. Used by
    * LinkedIn to avoid button-stuffing on one-liner chats ("thanks", "ok").
    * Short bodies are NOT marked as wired, so if the user expands a
@@ -87,7 +93,13 @@ export function startHost(strategy: HostStrategy): () => void {
       // attached. Skipping here prevents a second button from stacking into
       // the same anchor on the next MutationObserver tick.
       if (anchor.querySelector('[data-defluff="button"]')) continue;
-      wireTarget(body, anchor, strategy.insertAs ?? 'first', strategy.decorateButton);
+      wireTarget(
+        body,
+        anchor,
+        strategy.insertAs ?? 'first',
+        strategy.decorateButton,
+        strategy.decoratePanel,
+      );
     }
   };
 
@@ -155,6 +167,7 @@ function wireTarget(
   anchor: HTMLElement,
   insertAs: 'first' | 'last',
   decorateButton?: (host: HTMLElement) => void,
+  decoratePanel?: (host: HTMLElement) => void,
 ): void {
   let activePanel: { remove: () => void; focus: () => void } | null = null;
   let button: ButtonController;
@@ -202,11 +215,17 @@ function wireTarget(
       ...(response.ok ? {} : { error: buildErrorPayload(response, dismiss) }),
       onDismiss: dismiss,
     });
+    decoratePanel?.(panel.element);
 
     if (bodyConnected) {
-      // Render above the body, keeping the original visible. The user can
-      // read both, which is better than the hide-and-show-original dance.
-      body.parentElement!.insertBefore(panel.element, body);
+      // Position the panel on the same side of the body as the button, so
+      // the two read as one unit. insertAs === 'last' (LinkedIn) → panel
+      // goes below the body; 'first' (Gmail/Outlook) → above.
+      if (insertAs === 'last') {
+        body.parentElement!.insertBefore(panel.element, body.nextSibling);
+      } else {
+        body.parentElement!.insertBefore(panel.element, body);
+      }
     } else {
       // Fallback: float the panel over the page so the user sees *something*
       // rather than a silently-dead spinner when the email view reflows.

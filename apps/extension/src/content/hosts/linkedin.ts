@@ -26,5 +26,10 @@ export function startLinkedIn(): void {
       host.style.marginTop = '6px';
       host.style.marginBottom = '6px';
     },
+    decoratePanel: (host) => {
+      // Match the button's indent so summary, button, and message text all
+      // share the same left edge past the avatar column.
+      host.style.marginLeft = '64px';
+    },
   });
 }

@@ -19,6 +19,10 @@ export function createButton(onClick: () => void): ButtonController {
   const host = document.createElement('span');
   host.dataset.defluff = 'button';
   host.style.display = 'inline-block';
+  // Default breathing room below the button. Shadow DOM CSS can't style
+  // the host's external margins, so set it inline. Hosts that need a
+  // different gap (LinkedIn uses 6px) override via decorateButton.
+  host.style.marginBottom = '8px';
 
   const shadow = host.attachShadow({ mode: 'open' });
   const style = document.createElement('style');

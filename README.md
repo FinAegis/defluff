@@ -31,7 +31,7 @@ Corporate email has become unreadable. Half of every message is AI-generated fil
 Defluff is a browser extension and Outlook add-in that replaces the body of an open email with:
 
 1. **The reversed prompt** — one line naming what the sender probably asked an AI to write ("Pitch our DevOps services and offer a free infrastructure review"). Often this is all you need.
-2. **A verdict** — Actionable / Response needed / FYI / Noise, with scam-pattern naming for LinkedIn-grade spam (fake recruiter, conference scam, crypto pitch, phishing).
+2. **A verdict** — Actionable / Response needed / FYI / Noise, with scam-pattern naming for the threats you actually see in 2026: invoice fraud / BEC, phishing, fake recruiter, conference scam, crypto pitch.
 3. **3–5 bullets** — the actual specifics, preserved verbatim.
 
 *"Show original"* is one click away if you want the full email back.

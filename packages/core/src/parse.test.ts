@@ -54,6 +54,23 @@ describe('parseSummary', () => {
     expect(summary.bullets).toEqual([]);
   });
 
+  it('retains red-flag bullets on scam NOISE (invoice fraud / BEC)', () => {
+    const raw = [
+      'Prompt: "Write an urgent overdue-invoice reminder with a fake forwarded approval."',
+      'Verdict: NOISE — likely invoice fraud / BEC',
+      '',
+      '- Unknown sender on lookalike domain, not a known counterparty.',
+      '- Fake forwarded "approval" from an address impersonating the recipient.',
+      '- Urgency + late-fee threat paired with a payment redirect.',
+      '- Date inconsistencies between claimed overdue period and accrual start.',
+    ].join('\n');
+    const summary = parseSummary(raw);
+    expect(summary.verdict).toBe('noise');
+    expect(summary.verdictReason).toBe('likely invoice fraud / BEC');
+    expect(summary.bullets).toHaveLength(4);
+    expect(summary.bullets[0]).toMatch(/lookalike domain/);
+  });
+
   it('strips fancy quotes around the reversed prompt', () => {
     const raw = 'Prompt: "Ask for the numbers"\nVerdict: FYI — informational';
     expect(parseSummary(raw).reversedPrompt).toBe('Ask for the numbers');

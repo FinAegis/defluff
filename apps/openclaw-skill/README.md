@@ -40,4 +40,4 @@ The skill handles three input shapes:
 | **Thread** (multiple messages, same conversation) | Per-message bullets + consolidated **Actions** section with attribution |
 | **Batch** (unrelated emails) | Per-email bullets + **Triage** section (Act now / Reply needed / FYI / Noise) |
 
-Noise (newsletters, auto-replies, automated system mail without actionable content, generic recruiter outreach) collapses to a single labelled bullet. The skill will ask "single, thread, or batch?" if the input is ambiguous.
+Noise comes in two flavors. **Scam NOISE** (invoice fraud / BEC, phishing, fake recruiter, fake interview, conference scam, crypto / MLM pitch) emits 2–4 bullets naming the specific red flags the reader should see — unfamiliar sender domain, fake forwarded approval chain, urgency + payment redirect, sender impersonation, date inconsistencies. **Other NOISE** (newsletters, auto-replies, automated system mail, generic outreach) collapses to a single labelled bullet. The skill will ask "single, thread, or batch?" if the input is ambiguous.

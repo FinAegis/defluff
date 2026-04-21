@@ -76,6 +76,28 @@ describe('summarize', () => {
     expect(result.bullets).toEqual([]);
   });
 
+  it('returns scam-NOISE red-flag bullets end-to-end', async () => {
+    const scamResponse = [
+      'Prompt: "Write an urgent overdue-invoice reminder with a fake forwarded approval."',
+      'Verdict: NOISE — likely invoice fraud / BEC',
+      '',
+      '- Unknown sender on lookalike domain, not a known counterparty.',
+      '- Fake forwarded "approval" impersonating the recipient.',
+      '- Urgency + late-fee threat paired with a payment redirect.',
+    ].join('\n');
+    mockFetchOnce(200, {
+      choices: [{ message: { content: scamResponse } }],
+    });
+
+    const result = await summarize({
+      text: 'Hello, your invoice is overdue by 60 days...',
+      provider: { kind: 'openai', apiKey: 'sk-test' },
+    });
+    expect(result.verdict).toBe('noise');
+    expect(result.verdictReason).toMatch(/invoice fraud|BEC/i);
+    expect(result.bullets).toHaveLength(3);
+  });
+
   it('maps a 401 response to an auth error', async () => {
     mockFetchOnce(401, { error: { message: 'Invalid API key' } });
 

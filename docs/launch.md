@@ -121,7 +121,7 @@ Lead with "your organization's CISO already banned Grammarly and Otter." Skip th
 
 ## Launch checklist
 
-- [x] ClawHub skill published (`defluff` v0.0.6 live at https://clawhub.ai/yozaz/defluff — adds invoice fraud / BEC red-flag detection)
+- [x] ClawHub skill published (`defluff` v0.0.7 live at https://clawhub.ai/yozaz/defluff — adds invoice fraud / BEC red-flag detection)
 - [x] Hero screenshot in the README (`docs/screenshot.jpg`)
 - [ ] All [launch-blocker issues](https://github.com/FinAegis/defluff/labels/launch-blocker) closed
 - [ ] 20-second demo video (no voiceover; one click, reversed prompt + verdict + bullets, done)

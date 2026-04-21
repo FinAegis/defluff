@@ -2,7 +2,7 @@
 name: defluff
 displayName: Defluff
 description: Reverse the AI in corporate email. Guess the prompt the sender probably gave an LLM, classify the email, and extract the actual intent. Handles single messages, threads, and batches, with noise/scam detection including invoice fraud / BEC and phishing red flags.
-version: 0.0.6
+version: 0.0.7
 user-invocable: true
 ---
 
@@ -154,14 +154,19 @@ Verdict: NOISE — likely fake recruiter
 
 **Input:**
 
-> From: Vanessa Rogers <vanessa.rogers@ceocoachinginternationalus.net>
-> Subject: FWD: "Marijus Planciunas" Unpaid invoice.
->
-> Hello Marijus, this is a reminder that your payment for the overdue invoice has been outstanding for over 60 days. Late charges have been accruing since February 28, 2026. Please do not hesitate to contact me.
->
-> ---------- Forwarded message ---------
-> From: Marijus Planciunas <membership@stamps.org>
-> The invoice is okay and approved for payment. Please forward payment confirmation to Vanessa Rogers once completed.
+```
+From: Vanessa Rogers <vanessa.rogers@ceocoachinginternationalus.net>
+Subject: FWD: "Marijus Planciunas" Unpaid invoice.
+
+Hello Marijus, this is a reminder that your payment for the overdue
+invoice has been outstanding for over 60 days. Late charges have been
+accruing since February 28, 2026. Please do not hesitate to contact me.
+
+---------- Forwarded message ---------
+From: Marijus Planciunas <membership@stamps.org>
+The invoice is okay and approved for payment. Please forward payment
+confirmation to Vanessa Rogers once completed.
+```
 
 **Output:**
 

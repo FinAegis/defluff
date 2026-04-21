@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Defluff — strip AI-generated fluff from emails</title>
+  <meta name="description" content="One-click extension and Outlook add-in that replaces AI-padded emails with 3–5 bullets of real intent. BYOK, zero retention, open source." />
+  <meta property="og:title" content="Defluff — strip AI fluff from emails" />
+  <meta property="og:description" content="AI wrote this email. Have AI read it. Zero servers. Your keys, your models." />
+  <meta property="og:image" content="hero.jpg" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/png" sizes="128x128" href="icons/icon-128.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #202124;
+      --muted: #5f6368;
+      --panel: #f8faff;
+      --border: #dadce0;
+      --accent: #1a73e8;
+      --accent-hover: #1558b0;
+      --shadow: 0 1px 2px rgba(60, 64, 67, .15);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #202124;
+        --fg: #e8eaed;
+        --muted: #9aa0a6;
+        --panel: #2a2d31;
+        --border: #3c4043;
+        --accent: #8ab4f8;
+        --accent-hover: #aecbfa;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    .container { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    header .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--fg); text-decoration: none; }
+    .brand img { width: 32px; height: 32px; }
+    nav { display: flex; gap: 20px; font-size: 14px; }
+    nav a { color: var(--muted); text-decoration: none; }
+    nav a:hover { color: var(--accent); }
+    h1 { font-size: 42px; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; }
+    h1 .pad { color: var(--muted); }
+    h2 { font-size: 26px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -0.01em; }
+    p { margin: 0 0 16px; }
+    .lede { font-size: 18px; color: var(--muted); max-width: 620px; margin: 0 0 28px; }
+    .hero {
+      padding: 64px 0 40px;
+      text-align: center;
+    }
+    .hero h1 { max-width: 720px; margin-left: auto; margin-right: auto; }
+    .hero .lede { margin-left: auto; margin-right: auto; }
+    .ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      transition: background .12s ease, box-shadow .12s ease;
+    }
+    .btn:hover { background: color-mix(in srgb, var(--accent) 6%, var(--bg)); box-shadow: var(--shadow); }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: var(--shadow); }
+    .btn .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+    .btn.primary .tag { color: rgba(255,255,255,.8); }
+    .hero img { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+    section.band {
+      padding: 56px 0;
+      border-top: 1px solid var(--border);
+    }
+    section.band.alt { background: var(--panel); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; counter-reset: step; }
+    .step {
+      counter-increment: step;
+      padding: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .step::before {
+      content: counter(step);
+      display: inline-block;
+      width: 28px; height: 28px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .step h3 { margin: 0 0 6px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 14px;
+    }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: var(--panel); font-weight: 600; font-size: 13px; }
+    tr:last-child td { border-bottom: none; }
+    td.us { font-weight: 600; color: var(--accent); }
+    .proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0; }
+    .proof li { padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+    .proof li strong { display: block; margin-bottom: 4px; }
+    footer {
+      padding: 32px 0;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer .container { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer a { color: var(--muted); margin-right: 16px; text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    @media (max-width: 600px) {
+      h1 { font-size: 32px; }
+      .hero { padding: 40px 0 24px; }
+      section.band { padding: 40px 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="brand" href="/defluff/">
+        <img src="icons/icon-128.png" alt="" />
+        <span>Defluff</span>
+      </a>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="https://github.com/FinAegis/defluff">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>AI wrote this email.<br /><span class="pad">Have AI read it.</span></h1>
+      <p class="lede">
+        One-click extension and Outlook add-in that replaces AI-padded emails with 3–5 bullets of what the sender actually wants.
+        Zero servers. Your keys, your models, your data.
+      </p>
+      <div class="ctas">
+        <a class="btn primary" href="https://github.com/FinAegis/defluff#readme">
+          Install <span class="tag">v0.1</span>
+        </a>
+        <a class="btn" href="manifest.xml">
+          Outlook add-in <span class="tag">manifest</span>
+        </a>
+        <a class="btn" href="https://github.com/FinAegis/defluff">
+          Source <span class="tag">MIT</span>
+        </a>
+      </div>
+      <img src="hero.jpg" alt="Defluff in Outlook: a NOISE-verdict summary of a sales pitch, with the reversed prompt and two key bullets." />
+    </div>
+  </section>
+
+  <section id="how" class="band">
+    <div class="container">
+      <h2>How it works</h2>
+      <p class="lede">Three steps, ~60 seconds to set up. Zero accounts.</p>
+      <div class="steps">
+        <div class="step">
+          <h3>Install</h3>
+          <p>Chrome, Edge, or Firefox extension for Gmail / Outlook Web / LinkedIn. Or sideload the Office.js add-in for desktop Outlook.</p>
+        </div>
+        <div class="step">
+          <h3>Configure</h3>
+          <p>Pick a provider — Anthropic, OpenAI, Gemini, or your own Ollama. Paste the API key you already have. It stays in your browser.</p>
+        </div>
+        <div class="step">
+          <h3>Click De-Fluff</h3>
+          <p>The email collapses into 3–5 bullets, a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE), and a reversal of the prompt the sender probably used.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy" class="band alt">
+    <div class="container">
+      <h2>The privacy sell</h2>
+      <p class="lede">
+        Defluff has no backend. Your email content and your API key never leave your browser for infrastructure we run. Not a policy — the architecture.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Defluff</th>
+            <th>Shortwave</th>
+            <th>Superhuman AI</th>
+            <th>Grammarly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Your email reaches their servers</td>
+            <td class="us">Never</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Stores your content</td>
+            <td class="us">Never</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Needs an account</td>
+            <td class="us">No</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+          </tr>
+          <tr>
+            <td>Cost per month</td>
+            <td class="us">$0*</td>
+            <td>$12</td>
+            <td>$40</td>
+            <td>$12</td>
+          </tr>
+          <tr>
+            <td>Open source</td>
+            <td class="us">Yes</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td>Works with local models</td>
+            <td class="us">Yes (Ollama)</td>
+            <td>No</td>
+            <td>No</td>
+            <td>No</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 12px; font-size: 13px; color: var(--muted);">
+        * Plus what you pay your chosen LLM provider — typically under $1/month on Claude Haiku or GPT-4o mini, $0 on Ollama.
+      </p>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container">
+      <h2>Proof points</h2>
+      <ul class="proof">
+        <li><strong>MIT licensed</strong>Audit the whole thing over coffee. ~2,000 lines of TypeScript.</li>
+        <li><strong>Zero telemetry</strong>No analytics, no crash reports, no usage SDKs in the bundle.</li>
+        <li><strong>Host-scoped permissions</strong>Gmail, Outlook, and LinkedIn — nothing else. Never <code>&lt;all_urls&gt;</code>.</li>
+        <li><strong>Threat model published</strong>See <a href="https://github.com/FinAegis/defluff/blob/main/SECURITY.md">SECURITY.md</a> for what the product doesn't try to defend against.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div>&copy; FinAegis · MIT licensed</div>
+      <div>
+        <a href="https://github.com/FinAegis/defluff">GitHub</a>
+        <a href="https://github.com/FinAegis/defluff/blob/main/PRIVACY.md">Privacy</a>
+        <a href="https://github.com/FinAegis/defluff/blob/main/SECURITY.md">Security</a>
+        <a href="https://github.com/FinAegis/defluff/issues">Issues</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

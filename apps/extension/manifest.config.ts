@@ -8,6 +8,10 @@ const EMAIL_HOSTS = [
   'https://outlook.office.com/*',
   'https://outlook.office365.com/*',
   'https://outlook.live.com/*',
+  // Microsoft is migrating Outlook on the web to the .cloud.microsoft TLD.
+  // Tenants are being rolled over to this origin without a redirect from
+  // outlook.office.com, so it needs its own host match.
+  'https://outlook.cloud.microsoft/*',
 ] as const;
 
 // LinkedIn messaging lives here. Granted on demand via the options page's

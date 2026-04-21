@@ -66,6 +66,12 @@ export function startHost(strategy: HostStrategy): () => void {
     for (const body of bodies) {
       body.setAttribute(MARKER, 'true');
       const anchor = strategy.findAnchor(body);
+      // Anchor-level dedup: Gmail (and probably others) re-renders the body
+      // element after a reply is sent, which drops our marker — but the
+      // anchor (body.parentElement) sticks around with the old button still
+      // attached. Skipping here prevents a second button from stacking into
+      // the same anchor on the next MutationObserver tick.
+      if (anchor.querySelector('[data-defluff="button"]')) continue;
       wireTarget(body, anchor, strategy.insertAs ?? 'first', strategy.decorateButton);
     }
   };

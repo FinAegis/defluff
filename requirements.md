@@ -10,7 +10,7 @@ To reach the widest audience with the best user experience, the product requires
 
 #### A. Browser Extension (Chrome, Edge, Firefox)
 * **Use Case:** Users accessing Gmail or Outlook via their web browser.
-* **Mechanism:** The extension injects content scripts into the DOM (Document Object Model) of `mail.google.com` and `outlook.office.com`.
+* **Mechanism:** The extension injects content scripts into the DOM (Document Object Model) of `mail.google.com` and the Outlook Web origins (`outlook.office.com`, `outlook.office365.com`, `outlook.live.com`, `outlook.cloud.microsoft`).
 * **UI Integration:** It places a small, native-looking "De-fluff" button next to the standard "Reply" or "Forward" buttons inside the email viewing pane.
 
 #### B. Outlook Web Add-in

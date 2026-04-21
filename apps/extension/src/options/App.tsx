@@ -30,7 +30,11 @@ interface HostOption {
 
 const HOST_OPTIONS: readonly HostOption[] = [
   { key: 'gmail', label: 'Gmail', hint: 'mail.google.com' },
-  { key: 'outlook', label: 'Outlook Web', hint: 'outlook.office.com / outlook.live.com' },
+  {
+    key: 'outlook',
+    label: 'Outlook Web',
+    hint: 'outlook.office.com / outlook.live.com / outlook.cloud.microsoft',
+  },
   {
     key: 'linkedin',
     label: 'LinkedIn Messaging',

@@ -14,7 +14,8 @@ void (async () => {
   } else if (
     host === 'outlook.office.com' ||
     host === 'outlook.office365.com' ||
-    host === 'outlook.live.com'
+    host === 'outlook.live.com' ||
+    host === 'outlook.cloud.microsoft'
   ) {
     if (hosts.outlook) startOutlook();
   } else if (host === 'www.linkedin.com') {

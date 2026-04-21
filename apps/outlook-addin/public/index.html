@@ -158,16 +158,16 @@
     .badge.preview { border-color: var(--preview); color: var(--preview); }
     .surface p { margin: 0; font-size: 13px; color: var(--muted); }
 
-    .claude-callout {
+    .skill-callout {
       padding: 28px;
       border: 1px solid var(--border);
       border-left: 3px solid var(--accent);
       border-radius: 8px;
       background: var(--bg);
     }
-    .claude-callout h2 { margin-bottom: 8px; }
-    .claude-callout p { color: var(--muted); margin-bottom: 16px; }
-    .claude-callout .btn { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+    .skill-callout h2 { margin-bottom: 8px; }
+    .skill-callout p { color: var(--muted); margin-bottom: 16px; }
+    .skill-callout .btn { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
 
     table {
       border-collapse: collapse;
@@ -233,8 +233,11 @@
         <a class="btn primary" href="https://chromewebstore.google.com/detail/focbcpblgbbebppigdalpajdgmkmejfo">
           Add to Chrome <span class="tag">v0.1</span>
         </a>
+        <a class="btn" href="https://github.com/FinAegis/defluff/tree/main/apps/claude-skill#readme">
+          Claude Code plugin <span class="tag">Claude Code</span>
+        </a>
         <a class="btn" href="https://clawhub.ai/yozaz/defluff">
-          Claude skill <span class="tag">ClawHub</span>
+          OpenClaw skill <span class="tag">ClawHub</span>
         </a>
         <a class="btn" href="https://github.com/FinAegis/defluff">
           Source <span class="tag">MIT</span>
@@ -293,12 +296,20 @@
 
   <section class="band">
     <div class="container">
-      <div class="claude-callout">
-        <h2>Using Claude? There's a skill.</h2>
+      <div class="skill-callout">
+        <h2>Living in an agent? There's a skill.</h2>
         <p>
-          Defluff ships as a ClawHub skill for Claude. Install once, then paste any email in your Claude conversation for the same 3–5 bullet output — same reversal logic, same verdict format as the extension. No API keys, no install, no browser extension.
+          Defluff ships as a <strong>Claude Code plugin</strong> (via the FinAegis marketplace) and as a <strong>ClawHub skill</strong> for <a href="https://openclaw.ai">OpenClaw</a>. Install once, paste any email, get the same 3–5 bullet output — same reversal logic, same verdict format as the browser extension.
         </p>
-        <a class="btn" href="https://clawhub.ai/yozaz/defluff">clawhub.ai/yozaz/defluff</a>
+        <p class="note" style="margin-top:-8px; margin-bottom:16px;">
+          Claude Code runs the skill locally on your machine against your Anthropic subscription — same privacy shape as the extension. <strong>claude.ai and the Claude API</strong> (if you install the skill there) run it in Anthropic's sandbox and are not covered by zero data retention; reach for the extension instead if that matters.
+        </p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a class="btn" href="https://github.com/FinAegis/defluff/tree/main/apps/claude-skill#readme">
+            <code>/plugin install defluff@finaegis</code>
+          </a>
+          <a class="btn" href="https://clawhub.ai/yozaz/defluff">clawhub.ai/yozaz/defluff</a>
+        </div>
       </div>
     </div>
   </section>

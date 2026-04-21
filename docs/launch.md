@@ -33,6 +33,7 @@ This means:
 The pieces:
 - Chrome/Edge/Firefox extension for Gmail and Outlook Web.
 - Office.js add-in for desktop Outlook (Windows and Mac) and Outlook Web.
+- A Claude Code plugin (install with `/plugin install defluff@finaegis`) for Anthropic users.
 - An Openclaw skill for the local-agents crowd.
 
 Everything shares one ~500-line `@defluff/core` package that owns the extraction prompt and the four provider adapters. Plain `fetch()` — no SDKs in the bundle.
@@ -122,6 +123,8 @@ Lead with "your organization's CISO already banned Grammarly and Otter." Skip th
 ## Launch checklist
 
 - [x] ClawHub skill published (`defluff` v0.0.7 live at https://clawhub.ai/yozaz/defluff — adds invoice fraud / BEC red-flag detection)
+- [x] Claude Code plugin + single-repo marketplace live in `apps/claude-skill/` (`/plugin install defluff@finaegis`, v0.1.0)
+- [ ] Submit Claude Code plugin to the official Anthropic marketplace — https://claude.ai/settings/plugins/submit
 - [x] Hero screenshot in the README (`docs/screenshot.jpg`)
 - [ ] All [launch-blocker issues](https://github.com/FinAegis/defluff/labels/launch-blocker) closed
 - [ ] 20-second demo video (no voiceover; one click, reversed prompt + verdict + bullets, done)

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Defluff — strip AI-generated fluff from emails</title>
-  <meta name="description" content="One-click extension and Outlook add-in that replaces AI-padded emails with 3–5 bullets of real intent. BYOK, zero retention, open source." />
+  <meta name="description" content="Chrome extension that replaces AI-padded Gmail and LinkedIn messages with 3–5 bullets of real intent. BYOK, zero retention, open source." />
   <meta property="og:title" content="Defluff — strip AI fluff from emails" />
   <meta property="og:description" content="AI wrote this email. Have AI read it. Zero servers. Your keys, your models." />
   <meta property="og:image" content="hero.jpg" />
@@ -22,6 +22,8 @@
       --accent: #1a73e8;
       --accent-hover: #1558b0;
       --shadow: 0 1px 2px rgba(60, 64, 67, .15);
+      --ok: #1e8e3e;
+      --preview: #f29900;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -33,6 +35,8 @@
         --accent: #8ab4f8;
         --accent-hover: #aecbfa;
         --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+        --ok: #81c995;
+        --preview: #fdd663;
       }
     }
     * { box-sizing: border-box; }
@@ -56,7 +60,7 @@
     nav { display: flex; gap: 20px; font-size: 14px; }
     nav a { color: var(--muted); text-decoration: none; }
     nav a:hover { color: var(--accent); }
-    h1 { font-size: 42px; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; }
+    h1 { font-size: 42px; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; font-weight: 700; }
     h1 .pad { color: var(--muted); }
     h2 { font-size: 26px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -0.01em; }
     p { margin: 0 0 16px; }
@@ -93,6 +97,7 @@
       border-top: 1px solid var(--border);
     }
     section.band.alt { background: var(--panel); }
+    section.band h2 { margin-bottom: 8px; }
     .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; counter-reset: step; }
     .step {
       counter-increment: step;
@@ -116,6 +121,45 @@
     }
     .step h3 { margin: 0 0 6px; font-size: 17px; }
     .step p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .surfaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .surface {
+      padding: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .surface .title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .surface h3 { margin: 0; font-size: 16px; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--ok);
+      color: var(--ok);
+      background: transparent;
+      white-space: nowrap;
+    }
+    .badge.preview { border-color: var(--preview); color: var(--preview); }
+    .surface p { margin: 0; font-size: 13px; color: var(--muted); }
+
+    .claude-callout {
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+    .claude-callout h2 { margin-bottom: 8px; }
+    .claude-callout p { color: var(--muted); margin-bottom: 16px; }
+    .claude-callout .btn { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+
     table {
       border-collapse: collapse;
       width: 100%;
@@ -141,6 +185,12 @@
     footer .container { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
     footer a { color: var(--muted); margin-right: 16px; text-decoration: none; }
     footer a:hover { color: var(--accent); }
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: -20px;
+      margin-bottom: 24px;
+    }
     @media (max-width: 600px) {
       h1 { font-size: 32px; }
       .hero { padding: 40px 0 24px; }
@@ -157,6 +207,7 @@
       </a>
       <nav>
         <a href="#how">How it works</a>
+        <a href="#surfaces">Works with</a>
         <a href="#privacy">Privacy</a>
         <a href="https://github.com/FinAegis/defluff">GitHub</a>
       </nav>
@@ -167,41 +218,78 @@
     <div class="container">
       <h1>AI wrote this email.<br /><span class="pad">Have AI read it.</span></h1>
       <p class="lede">
-        One-click extension and Outlook add-in that replaces AI-padded emails with 3–5 bullets of what the sender actually wants.
-        Zero servers. Your keys, your models, your data.
+        One-click Chrome, Edge, and Firefox extension that replaces AI-padded messages in Gmail and LinkedIn with 3–5 bullets of what the sender actually wants. Zero servers. Your keys, your models, your data.
       </p>
       <div class="ctas">
-        <a class="btn primary" href="https://github.com/FinAegis/defluff#readme">
-          Install <span class="tag">v0.1</span>
+        <a class="btn primary" href="https://github.com/FinAegis/defluff#install">
+          Install <span class="tag">v0.1 · beta</span>
         </a>
-        <a class="btn" href="manifest.xml">
-          Outlook add-in <span class="tag">manifest</span>
+        <a class="btn" href="https://clawhub.ai/yozaz/defluff">
+          Claude skill <span class="tag">ClawHub</span>
         </a>
         <a class="btn" href="https://github.com/FinAegis/defluff">
           Source <span class="tag">MIT</span>
         </a>
       </div>
-      <img src="hero.jpg" alt="Defluff in Outlook: a NOISE-verdict summary of a sales pitch, with the reversed prompt and two key bullets." />
+      <p class="note">Pending Chrome Web Store review. For now, install via the unpacked build from the linked GitHub release — one command, documented in the README.</p>
+      <img src="hero.jpg" alt="Defluff summarizing an SEO sales pitch: NOISE verdict, a one-line reversed prompt, and two specifics — no fluff." />
     </div>
   </section>
 
   <section id="how" class="band">
     <div class="container">
       <h2>How it works</h2>
-      <p class="lede">Three steps, ~60 seconds to set up. Zero accounts.</p>
+      <p class="lede">Three steps, about sixty seconds to set up. No account.</p>
       <div class="steps">
         <div class="step">
           <h3>Install</h3>
-          <p>Chrome, Edge, or Firefox extension for Gmail / Outlook Web / LinkedIn. Or sideload the Office.js add-in for desktop Outlook.</p>
+          <p>One extension for Chrome, Edge, and Firefox. It adds a <em>De-Fluff</em> button to Gmail threads and LinkedIn messages.</p>
         </div>
         <div class="step">
           <h3>Configure</h3>
-          <p>Pick a provider — Anthropic, OpenAI, Gemini, or your own Ollama. Paste the API key you already have. It stays in your browser.</p>
+          <p>Pick a provider — Anthropic, OpenAI, Gemini, or your own Ollama. Paste the API key you already have. It never leaves your browser.</p>
         </div>
         <div class="step">
           <h3>Click De-Fluff</h3>
-          <p>The email collapses into 3–5 bullets, a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE), and a reversal of the prompt the sender probably used.</p>
+          <p>The email collapses into 3–5 bullets, a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE), and the prompt the sender probably asked an AI to write.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="surfaces" class="band alt">
+    <div class="container">
+      <h2>Where it works</h2>
+      <p class="lede">Primary targets are Gmail and LinkedIn Messaging. Outlook Web is supported. The Office.js desktop add-in is available as a preview.</p>
+      <div class="surfaces">
+        <div class="surface">
+          <div class="title"><h3>Gmail</h3><span class="badge">Ready</span></div>
+          <p>mail.google.com. Button appears above each expanded message.</p>
+        </div>
+        <div class="surface">
+          <div class="title"><h3>LinkedIn Messaging</h3><span class="badge">Ready</span></div>
+          <p>linkedin.com/messaging. Optional — granted on demand. Only shows on messages over 400 characters.</p>
+        </div>
+        <div class="surface">
+          <div class="title"><h3>Outlook Web</h3><span class="badge">Ready</span></div>
+          <p>outlook.office.com, outlook.live.com, and the new outlook.cloud.microsoft TLD.</p>
+        </div>
+        <div class="surface">
+          <div class="title"><h3>Outlook desktop</h3><span class="badge preview">Preview</span></div>
+          <p>Office.js add-in for desktop Outlook (Windows / Mac). Sideload <a href="manifest.xml">manifest.xml</a> — works, but less polished than the web extension.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="container">
+      <div class="claude-callout">
+        <h2>Using Claude? There's a skill.</h2>
+        <p>
+          Defluff ships as a ClawHub skill for Claude. Install once, then paste any email in your Claude conversation for the same 3–5 bullet output — same reversal logic, same verdict format as the extension. No API keys, no install, no browser extension.
+        </p>
+        <a class="btn" href="https://clawhub.ai/yozaz/defluff">clawhub.ai/yozaz/defluff</a>
       </div>
     </div>
   </section>

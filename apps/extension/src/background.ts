@@ -1,10 +1,12 @@
-import { DefluffError, summarize } from '@defluff/core';
+import { DefluffError, summarize, summarizeThread, type ThreadMessage } from '@defluff/core';
 import {
   MSG_OPEN_OPTIONS,
   MSG_SUMMARIZE,
+  MSG_SUMMARIZE_THREAD,
   MSG_TRIGGER_ACTIVE,
   type AppRequest,
   type SummarizeResponse,
+  type SummarizeThreadResponse,
 } from './shared/messages.js';
 import { getProviderConfig } from './shared/storage.js';
 
@@ -44,6 +46,11 @@ chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) =
     return true; // Chrome MV3 idiom: keep the channel open for an async response.
   }
 
+  if (message.type === MSG_SUMMARIZE_THREAD) {
+    void handleSummarizeThread(message.messages).then(sendResponse);
+    return true;
+  }
+
   if (message.type === MSG_OPEN_OPTIONS) {
     void chrome.runtime.openOptionsPage();
     return undefined;
@@ -65,6 +72,29 @@ async function handleSummarize(text: string): Promise<SummarizeResponse> {
   try {
     const summary = await summarize({ text, provider });
     return { ok: true, summary };
+  } catch (err) {
+    if (err instanceof DefluffError) {
+      return { ok: false, error: err.message, code: err.code };
+    }
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+async function handleSummarizeThread(
+  messages: ThreadMessage[],
+): Promise<SummarizeThreadResponse> {
+  const provider = await getProviderConfig();
+  if (!provider) {
+    return {
+      ok: false,
+      error: 'Open the Defluff options page and configure a provider first.',
+      code: 'unknown_provider',
+    };
+  }
+
+  try {
+    const thread = await summarizeThread({ messages, provider });
+    return { ok: true, thread };
   } catch (err) {
     if (err instanceof DefluffError) {
       return { ok: false, error: err.message, code: err.code };

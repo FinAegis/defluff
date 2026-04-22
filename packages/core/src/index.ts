@@ -7,14 +7,19 @@ export {
 export type { ProviderConfigInput } from './config.js';
 export { DefluffError } from './errors.js';
 export type { DefluffErrorCode } from './errors.js';
-export { parseBullets, parseSummary } from './parse.js';
-export { buildUserPrompt, SYSTEM_PROMPT } from './prompt.js';
+export { parseBullets, parseSummary, parseThreadSummary } from './parse.js';
+export {
+  buildThreadUserPrompt,
+  buildUserPrompt,
+  SYSTEM_PROMPT,
+  THREAD_SYSTEM_PROMPT,
+} from './prompt.js';
 export {
   PROVIDER_DEFAULT_MODELS,
   PROVIDER_KINDS,
   PROVIDER_LABELS,
 } from './providers/index.js';
-export { summarize } from './summarize.js';
+export { summarize, summarizeThread } from './summarize.js';
 export { toUserError } from './user-errors.js';
 export type { UserError, UserErrorAction } from './user-errors.js';
 export {
@@ -39,5 +44,11 @@ export type {
   ProviderRunArgs,
   Summary,
   SummarizeOptions,
+  SummarizeThreadOptions,
+  ThreadAction,
+  ThreadMessage,
+  ThreadMessageSummary,
+  ThreadSummary,
+  ThreadVerdict,
   Verdict,
 } from './types.js';

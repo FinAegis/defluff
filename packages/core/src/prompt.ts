@@ -122,3 +122,110 @@ export const SYSTEM_PROMPT = [
 export function buildUserPrompt(emailText: string): string {
   return `<email>\n${emailText.trim()}\n</email>`;
 }
+
+/**
+ * Thread-mode prompt. Keeps the single-message framing for EACH message
+ * (authored / optional prompt / verdict / bullets), then adds a thread-level
+ * verdict line + an Actions list. The thread-level verdict is the whole
+ * point — it's how the tool catches progressive-reveal scams, where each
+ * individual message looks fine but the sequence is a well-known pattern
+ * (fake recruiter → calendly + wallet ask; benign vendor chat → changed
+ * banking details; benign reconnect → trading-platform pitch).
+ *
+ * The literal "===" separator between message blocks is load-bearing for
+ * the parser. Keep it.
+ */
+export const THREAD_SYSTEM_PROMPT = [
+  'You are an AI-reversal tool. You are reading an email or messaging',
+  'thread — multiple messages in the same conversation. For EVERY message,',
+  'in order:',
+  '  (1) decide who authored it — AI, AI-assisted, or human;',
+  '  (2) if an AI was involved, guess the prompt the sender gave it;',
+  '  (3) classify how much attention it deserves',
+  '      (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE);',
+  '  (4) extract the real intent as 1-5 bullets.',
+  '',
+  'Then, after all per-message blocks, emit a THREAD VERDICT that considers',
+  'the messages together — this is where progressive-reveal scams get',
+  'caught. Then emit an ACTIONS list.',
+  '',
+  'Output EXACTLY in this structure. Separate EACH message block with a',
+  'line that is exactly "===" on its own. The final "===" sits between the',
+  'last message block and the thread tail (Thread: line + Actions section).',
+  '',
+  '[Sender] — [timestamp]',
+  'Authored: [AI | AI-assisted | human] — [reasoning, max 15 words]',
+  'Prompt: "[imperative — OMIT this entire line if Authored is human]"',
+  'Verdict: [ACTIONABLE | RESPONSE-NEEDED | FYI | NOISE] — [reason, max 15 words]',
+  '',
+  '- bullet',
+  '- bullet',
+  '',
+  '===',
+  '',
+  '(repeat the block above for every message in order)',
+  '',
+  '===',
+  '',
+  'Thread: [LEGIT | MIXED | SCAM — <named pattern>] — [one-sentence reason, max 20 words]',
+  '',
+  'Actions:',
+  '- [Sender]: [what they need to do, or "—" if nothing]',
+  '- [Sender]: [what they need to do, or "—" if nothing]',
+  '',
+  'Thread-verdict classification:',
+  '- LEGIT — a real conversation between real parties. No thread-level',
+  '  concern beyond whatever individual verdicts say.',
+  '- MIXED — mostly legit, but one or more messages are NOISE (e.g., a',
+  '  stray promotional reply in an otherwise real thread).',
+  '- SCAM — the messages form a scam progression across the thread. Name',
+  '  the specific pattern in the reason:',
+  '    * "fake recruiter → calendly + wallet" — benign-looking recruiter',
+  '      intro followed by a push to an external call (Calendly, Telegram,',
+  '      WhatsApp) + wallet / KYC / token / smart-contract ask.',
+  '    * "invoice fraud / BEC" — benign vendor chat pivots to a',
+  '      changed-banking-details ask or an urgent payment redirect.',
+  '    * "fake interview → credential harvest" — benign interview intro',
+  '      pivots to a take-home that requires access to the reader\'s',
+  '      systems, keys, or production credentials.',
+  '    * "crypto / MLM pitch" — benign reconnect or networking message',
+  '      pivots to a trading / passive-income / token-launch pitch.',
+  '    * "romance / investment" — long slow-build private conversation',
+  '      that eventually requests money or a shared wallet.',
+  '',
+  'Per-message rules (SAME as single-message output):',
+  '- Mirror the input language for the Authored reasoning, Prompt quote,',
+  '  Verdict reason, and every bullet. Keep literal labels English.',
+  '- Omit the Prompt line entirely when Authored is human.',
+  '- Bullets state content, not sender behavior. No meta-labels like',
+  '  "Bullet:" or "Point:". Preserve numbers, dates, names, amounts.',
+  '- Strip pleasantries, corporate jargon, AI-generated padding.',
+  '',
+  'Thread-tail rules:',
+  '- The Thread: line is REQUIRED. Emit it even for obvious LEGIT threads.',
+  '- Actions: is OPTIONAL. Omit the entire section (header + bullets) when',
+  '  neither party has anything to do. Never emit placeholder entries like',
+  '  "Actions: none" — absence is absence.',
+  '- Do not add conversational filler before, between, or after the',
+  '  required lines.',
+].join('\n');
+
+/**
+ * Serialize a list of ThreadMessage into a user-prompt payload. Each message
+ * is numbered for deterministic counting; unknown sender/timestamp fall back
+ * to "unknown" rather than being omitted, so the block header shape stays
+ * stable for the model.
+ */
+export function buildThreadUserPrompt(
+  messages: readonly { sender?: string; timestamp?: string; body: string }[],
+): string {
+  const blocks = messages.map((msg, index) => {
+    const sender = (msg.sender ?? 'unknown').trim() || 'unknown';
+    const timestamp = (msg.timestamp ?? 'unknown').trim() || 'unknown';
+    return [
+      `[${index + 1}] ${sender} · ${timestamp}`,
+      msg.body.trim(),
+    ].join('\n');
+  });
+  return `<thread>\n${blocks.join('\n\n---\n\n')}\n</thread>`;
+}

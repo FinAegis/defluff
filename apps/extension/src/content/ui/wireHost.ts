@@ -211,14 +211,20 @@ function wireTarget(
     let singleResponse: SummarizeResponse | undefined;
     let threadResponse: SummarizeThreadResponse | undefined;
 
-    // Dispatch thread-mode only when we have multiple messages with
-    // actual body content. A single-element extractor result means the
-    // host is effectively single-message (e.g. Gmail, or LinkedIn where
-    // the conversation has just started). Falling back keeps latency and
-    // token cost lowest for the common case.
-    const useThread =
-      Array.isArray(thread) &&
-      thread.filter((m) => m.body.trim().length > 0).length > 1;
+    // Thread mode earns its cost on conversations with a real progression
+    // — typically three or more messages (scam intro, the reader's reply,
+    // a scam-reveal message). A 1+1 exchange (inbound pitch + the
+    // reader's polite reply) is still effectively single-message for
+    // analysis purposes: the signal lives in the inbound message, and
+    // adding the reader's reply as a second block only dilutes the
+    // verdict and doubles token cost. For two-message threads we fall
+    // back to single-message mode on the clicked message, which lets
+    // the user get a per-message analysis by clicking the specific
+    // message they want defluffed.
+    const nonEmpty = Array.isArray(thread)
+      ? thread.filter((m) => m.body.trim().length > 0)
+      : [];
+    const useThread = nonEmpty.length >= 3;
 
     try {
       if (useThread) {

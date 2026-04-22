@@ -146,6 +146,46 @@ describe('parseThreadSummary', () => {
     expect(thread.threadVerdict).toBe('legit');
   });
 
+  it('parses a two-message SCAM thread where the inbound is a fake-recruiter pitch the reader politely replied to', () => {
+    // Regression for the "AjunaVerse / Laycee" case: a Web3 kitchen-sink
+    // recruiter cold-pitch followed by a polite reply. The model must
+    // classify the inbound as NOISE and the THREAD as SCAM — a polite
+    // reply does not launder a scam into legitimacy.
+    const raw = [
+      'Laycee — 7:05 PM',
+      'Authored: AI — clichéd opener, generic Web3 kitchen-sink, zero specifics',
+      'Prompt: "Send a cold LinkedIn recruiter pitch for a CTO role at a Web3 project."',
+      'Verdict: NOISE — likely fake recruiter / crypto-Web3 pitch',
+      '',
+      '- CTO OR Strategic Advisor offered to a stranger — "any title you\'ll respond to" bait.',
+      '- AjunaVerse / ajuna.io — kitchen-sink Web3 (betting + gaming + prediction markets).',
+      '- Zero specifics on stage, funding, comp, equity, or team.',
+      '',
+      '===',
+      '',
+      'Marijus — 10:08 PM',
+      'Authored: human — short polite acknowledgement',
+      'Verdict: FYI — polite holding reply to a scam pitch',
+      '',
+      '- Thanked sender, left door open for more info.',
+      '',
+      '===',
+      '',
+      'Thread: SCAM — crypto / Web3 pitch',
+      '',
+      'Actions:',
+      '- Marijus: do not engage further; block the sender.',
+      '- Laycee: —',
+    ].join('\n');
+
+    const thread = parseThreadSummary(raw);
+    expect(thread.messages).toHaveLength(2);
+    expect(thread.messages[0]?.summary.verdict).toBe('noise');
+    expect(thread.messages[0]?.summary.verdictReason).toMatch(/fake recruiter/i);
+    expect(thread.threadVerdict).toBe('scam');
+    expect(thread.threadVerdictReason).toMatch(/crypto.*Web3|Web3.*crypto/i);
+  });
+
   it('ignores legacy MIXED thread verdicts (the state was removed)', () => {
     const raw = [
       'Alice — Tue 10:14',

@@ -33,6 +33,11 @@
       --shadow: 0 1px 2px rgba(60, 64, 67, .15);
       --ok: #1e8e3e;
       --preview: #f29900;
+      /* Editor's-pen red. The anti-AI voice of the page: strike-throughs,
+         margin annotations, the DEFLUFFED stamp. Paired with the blue
+         accent, not replacing it — blue is trust, red is the correction. */
+      --ink: #c5221f;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -46,6 +51,7 @@
         --shadow: 0 1px 2px rgba(0, 0, 0, .4);
         --ok: #81c995;
         --preview: #fdd663;
+        --ink: #f28b82;
       }
     }
     * { box-sizing: border-box; }
@@ -80,6 +86,89 @@
     }
     .hero h1 { max-width: 720px; margin-left: auto; margin-right: auto; }
     .hero .lede { margin-left: auto; margin-right: auto; }
+
+    /* The anti-AI signature. An AI cliché struck through in red editor's pen,
+       sitting above the H1. The whole product stated visually in one line.
+       Sans italic (not mono) so it reads as a phrase from a padded email,
+       not as a code snippet. The strike itself is a rotated pseudo-element
+       to feel hand-drawn rather than a clean CSS line-through. */
+    .hero-strike {
+      display: inline-block;
+      font-style: italic;
+      font-size: 16px;
+      color: var(--muted);
+      letter-spacing: -0.005em;
+      margin: 0 0 14px;
+      padding: 0 4px;
+      position: relative;
+      white-space: nowrap;
+    }
+    .hero-strike::after {
+      content: "";
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      top: 54%;
+      height: 2px;
+      background: var(--ink);
+      transform: rotate(-1.4deg);
+      transform-origin: center;
+      pointer-events: none;
+      border-radius: 2px;
+    }
+    @media (max-width: 520px) {
+      .hero-strike { white-space: normal; font-size: 14px; }
+    }
+
+    /* Section overline — printed-spec cue. Monospace, tracked, muted,
+       with a section mark. Makes the page read like a document, not a
+       marketing brochure. Each section gets one above its <h2>. */
+    .section-overline {
+      margin: 0 0 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .section-overline .mark {
+      color: var(--ink);
+      margin-right: 6px;
+      font-weight: 700;
+    }
+
+    /* Hero image + rubber stamp overlay. The stamp is plain CSS — double
+       border, rotated, slightly desaturated — set just enough to read as
+       "stamped" without trying to fake noise textures we can't ship. */
+    .hero-shot {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+    }
+    .hero-shot img { max-width: 100%; display: block; }
+    .stamp {
+      position: absolute;
+      top: 14px;
+      right: -10px;
+      transform: rotate(-6deg);
+      padding: 8px 14px 7px;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink);
+      border: 2px solid currentColor;
+      box-shadow: inset 0 0 0 2px var(--bg), inset 0 0 0 4px currentColor;
+      background: var(--bg);
+      white-space: nowrap;
+      opacity: 0.92;
+      user-select: none;
+    }
+    @media (max-width: 640px) {
+      .stamp { top: 8px; right: 4px; font-size: 11px; padding: 6px 10px 5px; }
+    }
     .ctas { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
     .btn {
       display: inline-flex;
@@ -423,6 +512,7 @@
 
   <section class="hero">
     <div class="container">
+      <p class="hero-strike">I hope this email finds you well.</p>
       <h1>AI wrote this email.<br /><span class="pad">Have AI read it.</span></h1>
       <p class="lede">
         One-click extension for Gmail, Outlook, and LinkedIn. Detects whether a message was written by AI, polished by AI, or by a human — then extracts 3–5 bullets of what the sender actually wants, in the email's own language. Zero servers. Your keys, your models, your data.
@@ -452,12 +542,16 @@
         </a>
       </div>
       <p class="note">Chrome Web Store review in progress — the install link may show "unavailable" until approval lands. Firefox and Edge mirrors coming next.</p>
-      <img src="hero.jpg" alt="Defluff summarizing an SEO sales pitch: NOISE verdict, a one-line reversed prompt, and two specifics — no fluff." />
+      <div class="hero-shot">
+        <img src="hero.jpg" alt="Defluff summarizing an SEO sales pitch: NOISE verdict, a one-line reversed prompt, and two specifics — no fluff." />
+        <span class="stamp" aria-hidden="true">Defluffed</span>
+      </div>
     </div>
   </section>
 
   <section id="how" class="band">
     <div class="container">
+      <p class="section-overline"><span class="mark">§</span>01 · How it works</p>
       <h2>How it works</h2>
       <p class="lede">Three steps, about sixty seconds to set up. No account.</p>
       <div class="steps">
@@ -479,6 +573,7 @@
 
   <section id="surfaces" class="band alt">
     <div class="container">
+      <p class="section-overline"><span class="mark">§</span>02 · Where it works</p>
       <h2>Where it works</h2>
       <p class="lede">Primary targets are Gmail and LinkedIn Messaging. Outlook Web is supported. The Office.js desktop add-in is available as a preview.</p>
       <ul class="rail">
@@ -520,6 +615,7 @@
 
   <section class="band">
     <div class="container">
+      <p class="section-overline"><span class="mark">§</span>03 · Agent surfaces</p>
       <div class="skill-callout">
         <h2>Living in an agent? There's a skill.</h2>
         <p>
@@ -540,6 +636,7 @@
 
   <section id="privacy" class="band alt">
     <div class="container">
+      <p class="section-overline"><span class="mark">§</span>04 · Privacy</p>
       <h2>The privacy sell</h2>
       <p class="lede">
         Defluff has no backend. Your email content and your API key never leave your browser for infrastructure we run. Not a policy — the architecture.
@@ -607,6 +704,7 @@
 
   <section class="band">
     <div class="container">
+      <p class="section-overline"><span class="mark">§</span>05 · Proof points</p>
       <h2>Proof points</h2>
       <ul class="manifesto">
         <li class="manifesto-item">

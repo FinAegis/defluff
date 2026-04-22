@@ -68,11 +68,14 @@ When the email looks like a common scam or low-quality outreach, name the patter
 
 - **"likely invoice fraud"** / **"likely BEC"** — unsolicited payment or late-fee reminder, unknown sender on a lookalike or unfamiliar domain, fake forwarded "approval" chain (often from an address pretending to be the reader), impersonation of someone in the reader's org, urgency paired with a payment redirect
 - **"likely phishing"** — urgent credential/billing request, mismatched sender domain, suspicious link shortener, urgency pressure
-- **"likely fake recruiter"** — generic "amazing opportunity" with no company or role specifics
+- **"likely fake recruiter"** — generic "amazing opportunity" with no company or role specifics; two unrelated senior roles offered to a stranger ("CTO OR Strategic Advisor" — any title you'll respond to); first-name-only sign-off for a supposed C-level recruiting conversation
+- **"crypto / Web3 pitch"** — kitchen-sink Web3 / betting / gaming / prediction-markets / "next-generation platform" project offering a C-level role to a stranger with zero stage, funding, cap table, comp, or team specifics
 - **"likely conference scam"** — invitation to a conference the reader has never engaged with, vague venue, pay-to-speak, URL mismatch
 - **"likely fake interview"** — unverified recruiter asks for a technical interview with no company profile or LinkedIn trail
 - **"crypto / MLM pitch"** — mentions crypto, token launches, multi-level marketing, "passive income"
 - **"generic outreach"** — no specifics, clearly a template
+
+**A polite reader reply does not launder a scam into legitimacy.** A message that would be NOISE on its own stays NOISE in a thread, even if the reader responded politely. Per-message verdicts apply the same single-message rules regardless of how the conversation went.
 
 ## Output language
 

@@ -1,4 +1,7 @@
 import {
+  AUTHORED_ICONS,
+  AUTHORED_LABELS,
+  AUTHORED_PROMPT_LABELS,
   buildProviderConfig,
   DefluffError,
   formatReversedPrompt,
@@ -127,8 +130,34 @@ function renderSummary(summary: Summary): void {
   result.dataset.verdict = summary.verdict ?? '';
 
   const promptBlock = byId('prompt-block');
-  if (summary.reversedPrompt) {
-    byId<HTMLElement>('prompt-text').textContent = formatReversedPrompt(summary.reversedPrompt);
+  const promptIcon = byId<HTMLElement>('prompt-icon');
+  const promptLabel = byId<HTMLElement>('prompt-label-text');
+  const promptText = byId<HTMLElement>('prompt-text');
+  const authored = summary.authored;
+  if (authored) {
+    promptBlock.dataset.authored = authored;
+    promptIcon.textContent = AUTHORED_ICONS[authored];
+    promptLabel.textContent =
+      authored === 'human' ? AUTHORED_LABELS.human : AUTHORED_PROMPT_LABELS[authored];
+    if (authored === 'human') {
+      promptText.textContent = summary.authoredReason ?? '';
+      promptText.hidden = !summary.authoredReason;
+    } else {
+      promptText.textContent = summary.reversedPrompt
+        ? formatReversedPrompt(summary.reversedPrompt)
+        : '';
+      promptText.hidden = !summary.reversedPrompt;
+    }
+    promptBlock.hidden = false;
+  } else if (summary.reversedPrompt) {
+    // Legacy fallback: older models may omit Authored. Keep the existing
+    // "They probably asked an AI" wording rather than silently hiding the
+    // prompt a reader still finds useful.
+    delete promptBlock.dataset.authored;
+    promptIcon.textContent = '💭';
+    promptLabel.textContent = 'They probably asked an AI';
+    promptText.textContent = formatReversedPrompt(summary.reversedPrompt);
+    promptText.hidden = false;
     promptBlock.hidden = false;
   } else {
     promptBlock.hidden = true;

@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "FinAegis Claude Code plugins. Currently ships Defluff — strip AI-generated fluff from emails.",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "defluff",
       "source": "./apps/claude-skill",
-      "description": "Reverse the AI in corporate email: guess the prompt the sender gave an LLM, classify urgency, extract 3–5 bullets of real intent. Detects invoice fraud / BEC, phishing, fake recruiters, and other scam red flags.",
-      "version": "0.1.0",
+      "description": "Reverse the AI in corporate email: detect AI / AI-assisted / human authorship, guess the prompt when AI was involved, classify urgency, extract 3–5 bullets of real intent. Mirrors the email's language. Detects invoice fraud / BEC, phishing, fake recruiters, and other scam red flags.",
+      "version": "0.2.0",
       "homepage": "https://finaegis.github.io/defluff/",
       "repository": "https://github.com/FinAegis/defluff",
       "license": "MIT",

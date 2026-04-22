@@ -15,6 +15,7 @@ describe('parseBullets (legacy)', () => {
 describe('parseSummary', () => {
   it('extracts reversedPrompt, verdict, reason, and bullets', () => {
     const raw = [
+      'Authored: AI-assisted — clichéd opener, concrete deadline intact',
       'Prompt: "Politely ask the team for the deck by Wednesday."',
       'Verdict: ACTIONABLE — deadline-driven request',
       '',
@@ -23,12 +24,73 @@ describe('parseSummary', () => {
     ].join('\n');
 
     const summary = parseSummary(raw);
+    expect(summary.authored).toBe('ai-assisted');
+    expect(summary.authoredReason).toBe('clichéd opener, concrete deadline intact');
     expect(summary.reversedPrompt).toBe('Politely ask the team for the deck by Wednesday.');
     expect(summary.verdict).toBe('actionable');
     expect(summary.verdictReason).toBe('deadline-driven request');
     expect(summary.bullets).toEqual([
       'Send deck by EOD Wednesday',
       'Hold customer logos pending legal sign-off',
+    ]);
+  });
+
+  it('handles all three authorship tokens', () => {
+    const samples: Array<[string, string]> = [
+      ['Authored: AI — formulaic opener, no specifics', 'ai'],
+      ['Authored: AI-assisted — polished prose around a real deadline', 'ai-assisted'],
+      ['Authored: human — typos, terse reply-on-top', 'human'],
+    ];
+    for (const [line, expected] of samples) {
+      expect(parseSummary(line).authored).toBe(expected);
+    }
+  });
+
+  it('parses a human-authored response with no Prompt line', () => {
+    const raw = [
+      'Authored: human — terse, typos, named internal context',
+      'Verdict: ACTIONABLE — needs deck today',
+      '',
+      '- Send the deck before standup',
+    ].join('\n');
+    const summary = parseSummary(raw);
+    expect(summary.authored).toBe('human');
+    expect(summary.reversedPrompt).toBeUndefined();
+    expect(summary.verdict).toBe('actionable');
+    expect(summary.bullets).toEqual(['Send the deck before standup']);
+  });
+
+  it('treats placeholder Prompt lines as absent (n/a, empty, none)', () => {
+    for (const placeholder of ['""', '"n/a"', '"none"']) {
+      const raw = [
+        'Authored: human — quick internal reply',
+        `Prompt: ${placeholder}`,
+        'Verdict: FYI — informational',
+      ].join('\n');
+      expect(parseSummary(raw).reversedPrompt).toBeUndefined();
+    }
+  });
+
+  it('preserves non-English reasoning, prompt, verdict reason, and bullets', () => {
+    const raw = [
+      'Authored: AI — Phrase d\'ouverture clichée, superlatifs génériques',
+      'Prompt: "Demande polie au client de confirmer le brief avant vendredi."',
+      'Verdict: RESPONSE-NEEDED — attend confirmation avant vendredi',
+      '',
+      '- Confirmer le brief avant vendredi 16h',
+      '- Retour attendu sur les trois options proposées',
+    ].join('\n');
+    const summary = parseSummary(raw);
+    expect(summary.authored).toBe('ai');
+    expect(summary.authoredReason).toBe("Phrase d'ouverture clichée, superlatifs génériques");
+    expect(summary.reversedPrompt).toBe(
+      'Demande polie au client de confirmer le brief avant vendredi.',
+    );
+    expect(summary.verdict).toBe('response-needed');
+    expect(summary.verdictReason).toBe('attend confirmation avant vendredi');
+    expect(summary.bullets).toEqual([
+      'Confirmer le brief avant vendredi 16h',
+      'Retour attendu sur les trois options proposées',
     ]);
   });
 

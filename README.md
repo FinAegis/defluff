@@ -30,9 +30,10 @@ Corporate email has become unreadable. Half of every message is AI-generated fil
 
 Defluff is a browser extension and Outlook add-in that replaces the body of an open email with:
 
-1. **The reversed prompt** — one line naming what the sender probably asked an AI to write ("Pitch our DevOps services and offer a free infrastructure review"). Often this is all you need.
-2. **A verdict** — Actionable / Response needed / FYI / Noise, with scam-pattern naming for the threats you actually see in 2026: invoice fraud / BEC, phishing, fake recruiter, conference scam, crypto pitch.
-3. **3–5 bullets** — the actual specifics, preserved verbatim.
+1. **Authorship** — AI-written, AI-polished, or plainly human. No more always-on "they probably asked an AI" on messages that were clearly written by hand.
+2. **The reversed prompt** — one line naming what the sender probably asked an AI to write ("Pitch our DevOps services and offer a free infrastructure review"). Only shown when AI was actually involved. Often this is all you need.
+3. **A verdict** — Actionable / Response needed / FYI / Noise, with scam-pattern naming for the threats you actually see in 2026: invoice fraud / BEC, phishing, fake recruiter, conference scam, crypto pitch.
+4. **3–5 bullets** — the actual specifics, preserved verbatim. Returned in the email's own language — French email gets French bullets, German gets German.
 
 *"Show original"* is one click away if you want the full email back.
 
@@ -211,8 +212,10 @@ The most useful contributions right now are the [**launch-blocker issues**](http
 
 ---
 
-## License
+## License & support
 
-[MIT](LICENSE). Fork it, audit it, ship your own.
+[MIT](LICENSE). Free, forever. Fork it, audit it, ship your own.
+
+If Defluff saves you an hour a week and you'd like to say thanks: [☕ buymeacoffee.com/finaegis](https://buymeacoffee.com/finaegis). Entirely optional — the product is and always will be free.
 
 <sub>Built with skepticism by [FinAegis](https://github.com/FinAegis).</sub>

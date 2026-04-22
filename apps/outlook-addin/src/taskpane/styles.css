@@ -151,6 +151,17 @@ button.link:hover { text-decoration: underline; background: none; color: var(--a
   font-size: 13px;
   color: var(--fg);
 }
+/* Human-authored: drop the box chrome so the "Human-written" badge reads as
+   a lightweight signal, not a reversed-prompt card. */
+.prompt-block[data-authored="human"] {
+  background: transparent;
+  border-left-color: transparent;
+  padding: 0 0 4px;
+}
+.prompt-block[data-authored="human"] .prompt-text {
+  font-style: normal;
+  color: var(--muted);
+}
 
 .verdict {
   display: flex;

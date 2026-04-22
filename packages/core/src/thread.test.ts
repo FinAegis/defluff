@@ -145,6 +145,25 @@ describe('parseThreadSummary', () => {
     expect(thread.messages).toEqual([]);
     expect(thread.threadVerdict).toBe('legit');
   });
+
+  it('ignores legacy MIXED thread verdicts (the state was removed)', () => {
+    const raw = [
+      'Alice — Tue 10:14',
+      'Authored: human — terse',
+      'Verdict: FYI — auto-reply',
+      '',
+      '- Out of office this week',
+      '',
+      '===',
+      '',
+      'Thread: MIXED — one auto-reply in a legit thread',
+    ].join('\n');
+    const thread = parseThreadSummary(raw);
+    expect(thread.messages).toHaveLength(1);
+    // MIXED was removed from the verdict vocabulary; parser drops it and
+    // the caller renders the per-message verdicts on their own.
+    expect(thread.threadVerdict).toBeUndefined();
+  });
 });
 
 describe('summarizeThread', () => {

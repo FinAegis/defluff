@@ -71,9 +71,17 @@ function extractThread(clickedBody: HTMLElement): ThreadMessage[] {
   const list = findThreadList(clickedBody);
   if (!list) return [{ body: clickedBody.innerText.trim() }];
 
-  const items = Array.from(
-    list.querySelectorAll<HTMLElement>('.msg-s-event-listitem, li.msg-s-message-list__event'),
-  );
+  // LinkedIn nests an inner .msg-s-event-listitem inside an outer
+  // li.msg-s-message-list__event. A combined `, `-selector matches BOTH
+  // wrappers for the same message, and each wrapper resolves to the same
+  // inner .msg-s-event-listitem__body — producing two entries per message.
+  // Prefer the inner wrapper (carries richer per-message sender / time
+  // metadata) and only fall back to the outer li when the inner class
+  // isn't present in that particular LinkedIn build.
+  let items = Array.from(list.querySelectorAll<HTMLElement>('.msg-s-event-listitem'));
+  if (items.length === 0) {
+    items = Array.from(list.querySelectorAll<HTMLElement>('li.msg-s-message-list__event'));
+  }
 
   // Some LinkedIn layouts don't tag the listitem class — fall back to
   // walking the bodies directly and inferring context from DOM proximity.
@@ -86,6 +94,12 @@ function extractThread(clickedBody: HTMLElement): ThreadMessage[] {
   }
 
   const messages: ThreadMessage[] = [];
+  // Belt-and-braces against DOM selector overlap: even with the single-
+  // selector choice above, a future LinkedIn change that makes one message
+  // resolve to the same body via different wrappers would silently
+  // double-count. Dedupe by the underlying body element; keep the first
+  // occurrence (it has the outer-run metadata we want).
+  const seenBodies = new Set<HTMLElement>();
   let lastSender: string | undefined;
   let lastHeading: string | undefined;
 
@@ -99,6 +113,8 @@ function extractThread(clickedBody: HTMLElement): ThreadMessage[] {
 
     const body = item.querySelector<HTMLElement>('.msg-s-event-listitem__body');
     if (!body) continue;
+    if (seenBodies.has(body)) continue;
+    seenBodies.add(body);
 
     const sender =
       item

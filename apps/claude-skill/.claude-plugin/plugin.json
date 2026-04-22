@@ -1,6 +1,6 @@
 {
   "name": "defluff",
-  "description": "Reverse the AI in corporate email: detect AI / AI-assisted / human authorship, guess the prompt when AI was involved, classify urgency, extract 3–5 bullets of real intent. Mirrors the email's language. Detects invoice fraud / BEC, phishing, fake recruiters, and other scam red flags.",
+  "description": "Reverse the AI in corporate email: detect AI / AI-assisted / human authorship, guess the prompt when AI was involved, classify urgency, extract 3–5 bullets of real intent. Mirrors the email's language. Names scam progressions (fake recruiter + calendly + wallet, invoice fraud / BEC, crypto / Web3 pitch) and refuses to launder a scam into legitimacy just because the reader replied politely.",
   "author": {
     "name": "FinAegis"
   },

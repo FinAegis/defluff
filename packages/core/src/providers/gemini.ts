@@ -1,7 +1,12 @@
 import { codeFromStatus, DefluffError } from '../errors.js';
 import type { GeminiConfig, ProviderAdapter, ProviderRunArgs } from '../types.js';
 
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+// Default to Gemini 2.5 Pro (GA). We deliberately skip the
+// gemini-3.1-pro-preview default: preview SLA means unannounced
+// deprecations (see the 3.0 preview shutdown on 2026-03-09) and
+// occasional routing hiccups. Users who want to opt in to the
+// preview can set the model override from the options page.
+const DEFAULT_MODEL = 'gemini-2.5-pro';
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 interface GeminiResponse {

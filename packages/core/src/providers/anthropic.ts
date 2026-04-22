@@ -1,7 +1,10 @@
 import { codeFromStatus, DefluffError } from '../errors.js';
 import type { AnthropicConfig, ProviderAdapter, ProviderRunArgs } from '../types.js';
 
-const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+// Default to the current flagship Opus. Scam detection is a judgment
+// task; smaller models (Haiku) regress meaningfully. Users can override
+// to a cheaper tier from the options page.
+const DEFAULT_MODEL = 'claude-opus-4-7';
 const API_URL = 'https://api.anthropic.com/v1/messages';
 const API_VERSION = '2023-06-01';
 

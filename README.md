@@ -142,12 +142,30 @@ Then sideload `apps/outlook-addin/manifest.xml` from **Outlook Web → Get Add-i
 
 | Provider | Default model | How it connects |
 |---|---|---|
-| **Anthropic Claude** | `claude-haiku-4-5-20251001` | Messages API with the browser-direct header |
-| **OpenAI** | `gpt-4o-mini` | `dangerouslyAllowBrowser` — not actually dangerous here since it's your own key in your own browser |
-| **Google Gemini** | `gemini-2.5-flash` | Key as query param, native CORS |
-| **OpenAI-compatible** | `llama3` | Ollama (`http://localhost:11434/v1`), LM Studio, or any compatible endpoint |
+| **Anthropic Claude** | `claude-opus-4-7` | Messages API with the browser-direct header |
+| **OpenAI** | `gpt-5.4` | Chat Completions with `max_completion_tokens` — works on the reasoning models (o-series / GPT-5) and older chat models alike |
+| **Google Gemini** | `gemini-2.5-pro` | Key as query param, native CORS. (Preview tier `gemini-3.1-pro-preview` available via model override.) |
+| **OpenAI-compatible** | `llama3` | Ollama, LM Studio, LiteLLM, or any OpenAI-compatible endpoint. [Setup ↓](#running-against-a-local-model) |
 
 All four share one extraction prompt. Swap providers anytime from the options page.
+
+**A note on the defaults.** Defluff defaults to each provider's current frontier model rather than a mini/haiku/flash tier. Scam detection and AI-authorship classification are judgment tasks — smaller models regress meaningfully (they mark obvious AI-recruiter pitches as "legit" because they lean literal). A typical email is ~500-1500 input tokens + ~200 output, so per-click cost lands in the ~$0.01-0.05 range. If that's too much for your usage pattern, override the model to a cheaper tier (`claude-haiku-4-5`, `gpt-4o-mini`, `gemini-2.5-flash`) from the options page — the prompt still handles them, just with less aggression on edge cases.
+
+### Running against a local model
+
+Point Defluff at an Ollama or LM Studio instance and get zero per-call cost, full privacy, and no rate limits:
+
+1. **Install and run Ollama.** `brew install ollama` (or equivalent) then `ollama pull llama3` and `ollama serve`.
+2. **Allow the extension origin to call Ollama.** Ollama's default CORS config blocks browser requests. Start Ollama with:
+
+   ```bash
+   OLLAMA_ORIGINS='chrome-extension://*,moz-extension://*' ollama serve
+   ```
+
+   Or the more permissive `OLLAMA_ORIGINS='*'` if you're not fussy. On macOS with the Ollama app, `launchctl setenv OLLAMA_ORIGINS '*'` then restart the app.
+3. **Configure Defluff.** Options page → Provider: **OpenAI-compatible** → Base URL: `http://localhost:11434/v1` → Model: `llama3` (or whatever you pulled) → leave API key blank → Save.
+
+LM Studio is similar: start its local server, point the base URL at `http://localhost:1234/v1`. LiteLLM and other OpenAI-compatible gateways work the same way.
 
 ---
 

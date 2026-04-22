@@ -1,7 +1,13 @@
 import type { OpenAIConfig, ProviderAdapter } from '../types.js';
 import { callOpenAICompatible } from './openai-compatible.js';
 
-const DEFAULT_MODEL = 'gpt-4o-mini';
+// Default to the current frontier. Mini tiers (gpt-4o-mini, 3.5-turbo)
+// undercalled scams in real testing — they mark obvious AI-recruiter
+// pitches as "Legit thread / human / genuine recruitment opportunity"
+// because smaller models lean literal and skip skeptical pattern-
+// matching. GPT-5.4 handles judgment reliably. Users who want the
+// mini cost curve can override from the options page.
+const DEFAULT_MODEL = 'gpt-5.4';
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
 
 /**

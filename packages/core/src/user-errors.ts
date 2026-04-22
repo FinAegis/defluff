@@ -9,6 +9,14 @@ export interface UserError {
   explanation: string;
   /** Hints to the UI what kind of CTA to render. */
   action: UserErrorAction;
+  /**
+   * The raw provider response / error message, kept alongside the
+   * friendly title+explanation so the UI can expose it in a collapsible
+   * "Provider response" block. Useful for debugging model-name typos,
+   * rate-limit wording, and provider-specific error codes that the
+   * friendly preset would otherwise hide.
+   */
+  details?: string;
 }
 
 /**
@@ -17,13 +25,32 @@ export interface UserError {
  * `configure`, "Try again" for `retry`). The fallback message is only used
  * when an unknown code comes through — we try to surface something useful
  * even then.
+ *
+ * When a raw `message` is supplied AND the code is known, the message is
+ * kept as `details` so the panel can expose it to developers. For unknown
+ * codes the message is already used as the explanation, so it's not also
+ * duplicated into details.
  */
 export function toUserError(
   code: DefluffErrorCode | undefined,
-  fallback = 'Something went wrong. Try again.',
+  message?: string,
 ): UserError {
-  if (code && code in MESSAGES) return MESSAGES[code];
-  return { title: 'Something went wrong', explanation: fallback, action: 'retry' };
+  const preset = code && code in MESSAGES ? MESSAGES[code] : undefined;
+  if (preset) {
+    const trimmed = message?.trim();
+    // Only surface details when distinct from the canned explanation —
+    // otherwise the disclosure reveals the same sentence the user already
+    // sees, which just looks like clutter.
+    if (trimmed && trimmed !== preset.explanation) {
+      return { ...preset, details: trimmed };
+    }
+    return { ...preset };
+  }
+  return {
+    title: 'Something went wrong',
+    explanation: message ?? 'Something went wrong. Try again.',
+    action: 'retry',
+  };
 }
 
 const MESSAGES: Record<DefluffErrorCode, UserError> = {

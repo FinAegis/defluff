@@ -213,6 +213,19 @@ function renderError(err: unknown): void {
     pane.appendChild(p);
   }
 
+  if (userError.details) {
+    const disclosure = document.createElement('details');
+    disclosure.className = 'error-details';
+    const summary = document.createElement('summary');
+    summary.textContent = 'Provider response';
+    disclosure.appendChild(summary);
+    const body = document.createElement('pre');
+    body.className = 'error-details-body';
+    body.textContent = userError.details;
+    disclosure.appendChild(body);
+    pane.appendChild(disclosure);
+  }
+
   if (userError.action === 'configure') {
     const btn = document.createElement('button');
     btn.type = 'button';

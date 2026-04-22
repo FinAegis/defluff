@@ -1,6 +1,13 @@
-import { toUserError } from '@defluff/core';
-import type { SummarizeResponse } from '../../shared/messages.js';
-import { MSG_OPEN_OPTIONS, MSG_SUMMARIZE } from '../../shared/messages.js';
+import { toUserError, type Summary, type ThreadMessage, type ThreadSummary } from '@defluff/core';
+import type {
+  SummarizeResponse,
+  SummarizeThreadResponse,
+} from '../../shared/messages.js';
+import {
+  MSG_OPEN_OPTIONS,
+  MSG_SUMMARIZE,
+  MSG_SUMMARIZE_THREAD,
+} from '../../shared/messages.js';
 import { createButton, type ButtonController } from './button.js';
 import { createPanel, type PanelError } from './panel.js';
 
@@ -49,6 +56,16 @@ export interface HostStrategy {
    * truncated message and crosses the threshold, the next scan picks it up.
    */
   minBodyChars?: number;
+  /**
+   * Optional thread extractor. When present, the host calls it on click
+   * and sends the returned message list to the service worker as a
+   * SUMMARIZE_THREAD request. If the extractor returns ≤1 message, the
+   * host falls back to single-message SUMMARIZE so the round-trip shape
+   * is unchanged for hosts that don't have a structured thread DOM (e.g.
+   * Gmail until its adapter is updated). Defensive: the extractor MUST
+   * NOT throw — return an empty array / a single message instead.
+   */
+  extractThread?(body: HTMLElement): ThreadMessage[];
 }
 
 /**
@@ -99,6 +116,7 @@ export function startHost(strategy: HostStrategy): () => void {
         strategy.insertAs ?? 'first',
         strategy.decorateButton,
         strategy.decoratePanel,
+        strategy.extractThread,
       );
     }
   };
@@ -168,6 +186,7 @@ function wireTarget(
   insertAs: 'first' | 'last',
   decorateButton?: (host: HTMLElement) => void,
   decoratePanel?: (host: HTMLElement) => void,
+  extractThread?: (body: HTMLElement) => ThreadMessage[],
 ): void {
   let activePanel: { remove: () => void; focus: () => void } | null = null;
   let button: ButtonController;
@@ -180,15 +199,47 @@ function wireTarget(
     if (!body.isConnected) return;
     button.setBusy(true);
 
-    const emailText = body.innerText.trim();
-    let response: SummarizeResponse | undefined;
+    let thread: ThreadMessage[] | undefined;
+    if (extractThread) {
+      try {
+        thread = extractThread(body);
+      } catch {
+        thread = undefined;
+      }
+    }
+
+    let singleResponse: SummarizeResponse | undefined;
+    let threadResponse: SummarizeThreadResponse | undefined;
+
+    // Dispatch thread-mode only when we have multiple messages with
+    // actual body content. A single-element extractor result means the
+    // host is effectively single-message (e.g. Gmail, or LinkedIn where
+    // the conversation has just started). Falling back keeps latency and
+    // token cost lowest for the common case.
+    const useThread =
+      Array.isArray(thread) &&
+      thread.filter((m) => m.body.trim().length > 0).length > 1;
+
     try {
-      response = await chrome.runtime.sendMessage({ type: MSG_SUMMARIZE, text: emailText });
+      if (useThread) {
+        threadResponse = await chrome.runtime.sendMessage({
+          type: MSG_SUMMARIZE_THREAD,
+          messages: thread as ThreadMessage[],
+        });
+      } else {
+        const emailText = body.innerText.trim();
+        singleResponse = await chrome.runtime.sendMessage({
+          type: MSG_SUMMARIZE,
+          text: emailText,
+        });
+      }
     } catch (err) {
-      response = {
-        ok: false,
-        error: err instanceof Error ? err.message : 'Extension error',
-      };
+      const error = err instanceof Error ? err.message : 'Extension error';
+      if (useThread) {
+        threadResponse = { ok: false, error };
+      } else {
+        singleResponse = { ok: false, error };
+      }
     }
 
     button.setBusy(false);
@@ -196,8 +247,12 @@ function wireTarget(
     // Defensive: sendMessage can resolve with undefined if the service worker
     // terminated mid-flight before calling sendResponse. Treat as a generic
     // network-class failure rather than crashing on `response.ok`.
-    if (!response || typeof response !== 'object' || !('ok' in response)) {
-      response = { ok: false, error: 'No response from the extension. Try again.' };
+    if (useThread) {
+      if (!threadResponse || typeof threadResponse !== 'object' || !('ok' in threadResponse)) {
+        threadResponse = { ok: false, error: 'No response from the extension. Try again.' };
+      }
+    } else if (!singleResponse || typeof singleResponse !== 'object' || !('ok' in singleResponse)) {
+      singleResponse = { ok: false, error: 'No response from the extension. Try again.' };
     }
 
     // Body may have been reparented while we waited on the LLM. Pick a
@@ -210,9 +265,19 @@ function wireTarget(
       if (button.element.isConnected) button.focus();
     };
 
+    const activeResponse = useThread ? threadResponse! : singleResponse!;
+    const errorPayload = !activeResponse.ok
+      ? buildErrorPayload(activeResponse, dismiss)
+      : undefined;
+
     const panel = createPanel({
-      ...(response.ok ? { summary: response.summary } : {}),
-      ...(response.ok ? {} : { error: buildErrorPayload(response, dismiss) }),
+      ...(useThread && activeResponse.ok
+        ? { thread: (activeResponse as { thread: ThreadSummary }).thread }
+        : {}),
+      ...(!useThread && activeResponse.ok
+        ? { summary: (activeResponse as { summary: Summary }).summary }
+        : {}),
+      ...(errorPayload ? { error: errorPayload } : {}),
       onDismiss: dismiss,
     });
     decoratePanel?.(panel.element);

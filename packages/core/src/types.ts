@@ -78,6 +78,55 @@ export interface SummarizeOptions {
   signal?: AbortSignal;
 }
 
+/**
+ * A single message in a thread. Sender and timestamp are best-effort — the
+ * DOM scrape in the extension may miss them on collapsed runs or reply-all
+ * blocks. The body is always required; without it there is nothing to
+ * summarize.
+ */
+export interface ThreadMessage {
+  sender?: string;
+  timestamp?: string;
+  body: string;
+}
+
+/**
+ * Thread-level verdict. Distinct from the per-message Verdict space
+ * (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE) because it describes the
+ * conversation as a whole — in particular, scam progressions where
+ * individual messages look fine but the sequence is not.
+ */
+export type ThreadVerdict = 'legit' | 'mixed' | 'scam';
+
+export interface ThreadMessageSummary {
+  sender?: string;
+  timestamp?: string;
+  summary: Summary;
+}
+
+export interface ThreadAction {
+  /** The person responsible. Free-form — "Alice", "You", "Both", "—". */
+  who: string;
+  /** What that person needs to do. "—" when nothing is required. */
+  action: string;
+}
+
+export interface ThreadSummary {
+  messages: ThreadMessageSummary[];
+  /** LEGIT / MIXED / SCAM at the thread level. Optional when the model did not emit one. */
+  threadVerdict?: ThreadVerdict;
+  /** One-sentence reason, naming the scam pattern if applicable. */
+  threadVerdictReason?: string;
+  /** Per-person action list from the model. May be empty. */
+  actions: ThreadAction[];
+}
+
+export interface SummarizeThreadOptions {
+  messages: ThreadMessage[];
+  provider: ProviderConfig;
+  signal?: AbortSignal;
+}
+
 export interface ProviderRunArgs {
   systemPrompt: string;
   userPrompt: string;

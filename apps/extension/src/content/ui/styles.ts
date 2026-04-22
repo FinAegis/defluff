@@ -219,4 +219,99 @@ export const CONTENT_CSS = `
   white-space: nowrap;
   border: 0;
 }
+
+/* Thread mode — a thread verdict strip at the top (LEGIT / MIXED / SCAM)
+   frames the reader's attention before the per-message detail.
+   SCAM gets the error palette because that's the whole point of
+   thread mode: progressive-reveal scams. */
+.df-thread-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: var(--df-panel-bg);
+  border: 1px solid var(--df-panel-border);
+  font-size: 13px;
+}
+.df-thread-verdict[data-thread-verdict="scam"] {
+  background: var(--df-error-bg);
+  border-color: var(--df-error-accent);
+  color: var(--df-error-accent);
+}
+.df-thread-verdict[data-thread-verdict="mixed"] {
+  color: var(--df-verdict-fyi);
+}
+.df-thread-verdict-icon { font-size: 14px; font-weight: 700; }
+.df-thread-verdict-label {
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.df-thread-verdict-reason {
+  color: var(--df-fg);
+  font-weight: 400;
+  font-style: italic;
+}
+.df-thread-verdict[data-thread-verdict="scam"] .df-thread-verdict-reason { color: inherit; }
+
+/* Per-message block — a hairline-separated stack. The first block has no
+   top rule so the thread verdict strip flows into it; subsequent blocks
+   carry a top rule as the separator. */
+.df-thread-message {
+  padding: 12px 0 6px;
+  border-top: 1px solid var(--df-panel-border);
+}
+.df-thread-message.df-thread-message-first {
+  padding-top: 0;
+  border-top: none;
+}
+.df-thread-message[data-verdict="noise"] ul { opacity: 0.65; }
+
+.df-thread-message-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--df-muted);
+}
+.df-thread-message-sender {
+  font-weight: 600;
+  color: var(--df-fg);
+  font-size: 13px;
+}
+.df-thread-message-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  letter-spacing: -0.01em;
+}
+
+/* Actions block at the bottom — a compact who/what list. Keeps the scan
+   simple: read the thread verdict, then the actions. Bullets sit as a
+   plain list without the Gmail-adjacent chrome. */
+.df-thread-actions {
+  margin: 10px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--df-panel-border);
+}
+.df-thread-actions-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--df-muted);
+}
+.df-thread-actions ul { margin: 0; padding-left: 18px; }
+.df-thread-actions li { margin-bottom: 4px; font-size: 13px; }
+.df-thread-actions li strong { margin-right: 4px; color: var(--df-fg); font-weight: 600; }
+
+/* Match the SCAM palette around the entire panel when the thread reads as
+   a scam — the reader needs the hint that this is not just informational. */
+.df-panel[data-thread-verdict="scam"] { border-left-color: var(--df-error-accent); }
 `;

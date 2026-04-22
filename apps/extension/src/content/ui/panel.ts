@@ -1,4 +1,4 @@
-import type { Authored, Summary, Verdict } from '@defluff/core';
+import type { Authored, Summary, ThreadSummary, ThreadVerdict, Verdict } from '@defluff/core';
 import {
   AUTHORED_ICONS,
   AUTHORED_LABELS,
@@ -23,9 +23,22 @@ export interface PanelError {
 
 export interface PanelOptions {
   summary?: Summary;
+  thread?: ThreadSummary;
   error?: PanelError;
   onDismiss?: () => void;
 }
+
+const THREAD_VERDICT_LABELS: Record<ThreadVerdict, string> = {
+  legit: 'Legit thread',
+  mixed: 'Mixed thread',
+  scam: 'Scam progression',
+};
+
+const THREAD_VERDICT_ICONS: Record<ThreadVerdict, string> = {
+  legit: '✓',
+  mixed: '△',
+  scam: '✕',
+};
 
 export function createPanel(opts: PanelOptions): PanelController {
   const host = document.createElement('div');
@@ -40,14 +53,23 @@ export function createPanel(opts: PanelOptions): PanelController {
   const isError = !!opts.error;
   panel.className = isError ? 'df-panel df-error' : 'df-panel';
   panel.setAttribute('role', isError ? 'alert' : 'region');
-  panel.setAttribute('aria-label', isError ? 'Defluff error' : 'Email summary');
+  panel.setAttribute(
+    'aria-label',
+    isError ? 'Defluff error' : opts.thread ? 'Thread summary' : 'Email summary',
+  );
   panel.tabIndex = -1;
-  if (!isError && opts.summary?.verdict) {
-    panel.dataset.verdict = opts.summary.verdict;
+  if (!isError) {
+    if (opts.thread?.threadVerdict) {
+      panel.dataset.threadVerdict = opts.thread.threadVerdict;
+    } else if (opts.summary?.verdict) {
+      panel.dataset.verdict = opts.summary.verdict;
+    }
   }
 
   if (isError && opts.error) {
     renderError(panel, opts.error);
+  } else if (opts.thread) {
+    renderThread(panel, opts.thread);
   } else if (opts.summary) {
     renderSummary(panel, opts.summary);
   }
@@ -233,6 +255,141 @@ function buildVerdictRow(verdict: Verdict, reason?: string): HTMLElement {
   }
 
   return row;
+}
+
+/**
+ * Render a thread-mode summary. The structure is:
+ *
+ *   [Thread-verdict strip]
+ *   ── message 1 ──────────────
+ *     [authored] [verdict] [bullets]
+ *   ── message 2 ──────────────
+ *     ...
+ *   [Actions]
+ *
+ * The thread verdict strip (LEGIT / MIXED / SCAM) is shown FIRST because
+ * it's the headline answer — especially for SCAM, the reader should see
+ * the pattern name before scrolling through per-message detail.
+ */
+function renderThread(panel: HTMLElement, thread: ThreadSummary): void {
+  const hasAnything =
+    thread.messages.length > 0 || !!thread.threadVerdict || thread.actions.length > 0;
+
+  if (!hasAnything) {
+    const heading = document.createElement('h3');
+    heading.textContent = 'No summary';
+    panel.appendChild(heading);
+    const p = document.createElement('p');
+    p.textContent =
+      'The model did not return a usable thread summary. Try again or switch models.';
+    panel.appendChild(p);
+    return;
+  }
+
+  if (thread.threadVerdict) {
+    panel.appendChild(
+      buildThreadVerdictStrip(thread.threadVerdict, thread.threadVerdictReason),
+    );
+  }
+
+  for (let i = 0; i < thread.messages.length; i++) {
+    const msg = thread.messages[i];
+    if (!msg) continue;
+    panel.appendChild(buildMessageBlock(msg, i === 0));
+  }
+
+  if (thread.actions.length > 0) {
+    panel.appendChild(buildActionsBlock(thread.actions));
+  }
+}
+
+function buildThreadVerdictStrip(verdict: ThreadVerdict, reason?: string): HTMLElement {
+  const strip = document.createElement('div');
+  strip.className = 'df-thread-verdict';
+  strip.dataset.threadVerdict = verdict;
+
+  const icon = document.createElement('span');
+  icon.className = 'df-thread-verdict-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = THREAD_VERDICT_ICONS[verdict];
+  strip.appendChild(icon);
+
+  const label = document.createElement('span');
+  label.className = 'df-thread-verdict-label';
+  label.textContent = THREAD_VERDICT_LABELS[verdict];
+  strip.appendChild(label);
+
+  if (reason) {
+    const reasonSpan = document.createElement('span');
+    reasonSpan.className = 'df-thread-verdict-reason';
+    reasonSpan.textContent = reason;
+    strip.appendChild(reasonSpan);
+  }
+  return strip;
+}
+
+function buildMessageBlock(
+  msg: ThreadSummary['messages'][number],
+  isFirst: boolean,
+): HTMLElement {
+  const section = document.createElement('section');
+  section.className = 'df-thread-message';
+  if (isFirst) section.classList.add('df-thread-message-first');
+  if (msg.summary.verdict) section.dataset.verdict = msg.summary.verdict;
+
+  const header = document.createElement('header');
+  header.className = 'df-thread-message-head';
+  const sender = document.createElement('span');
+  sender.className = 'df-thread-message-sender';
+  sender.textContent = msg.sender ?? 'Unknown sender';
+  header.appendChild(sender);
+  if (msg.timestamp) {
+    const ts = document.createElement('span');
+    ts.className = 'df-thread-message-time';
+    ts.textContent = msg.timestamp;
+    header.appendChild(ts);
+  }
+  section.appendChild(header);
+
+  const { summary } = msg;
+  const authoredBlock = buildAuthoredBlock(summary);
+  if (authoredBlock) section.appendChild(authoredBlock);
+
+  if (summary.verdict) {
+    section.appendChild(buildVerdictRow(summary.verdict, summary.verdictReason));
+  }
+
+  if (summary.bullets.length > 0) {
+    const list = document.createElement('ul');
+    for (const bullet of summary.bullets) {
+      const li = document.createElement('li');
+      li.textContent = bullet;
+      list.appendChild(li);
+    }
+    section.appendChild(list);
+  }
+
+  return section;
+}
+
+function buildActionsBlock(actions: ThreadSummary['actions']): HTMLElement {
+  const block = document.createElement('section');
+  block.className = 'df-thread-actions';
+  const label = document.createElement('p');
+  label.className = 'df-thread-actions-label';
+  label.textContent = 'Actions';
+  block.appendChild(label);
+  const list = document.createElement('ul');
+  for (const action of actions) {
+    const li = document.createElement('li');
+    const who = document.createElement('strong');
+    who.textContent = `${action.who}:`;
+    li.appendChild(who);
+    li.appendChild(document.createTextNode(` ${action.action}`));
+    list.appendChild(li);
+  }
+  block.appendChild(list);
+  return block;
 }
 
 function makeLink(label: string, onClick: () => void): HTMLButtonElement {

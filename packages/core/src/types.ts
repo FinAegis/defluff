@@ -129,6 +129,18 @@ export interface SummarizeThreadOptions {
   signal?: AbortSignal;
 }
 
+/**
+ * Options for the scam-bait generator. Only used when the thread has
+ * been classified SCAM — the generated reply is a deliberately
+ * time-wasting draft the reader can send back to the scammer to burn
+ * their effort producing documentation that will never be read.
+ */
+export interface GenerateBaitOptions {
+  messages: ThreadMessage[];
+  provider: ProviderConfig;
+  signal?: AbortSignal;
+}
+
 export interface ProviderRunArgs {
   systemPrompt: string;
   userPrompt: string;

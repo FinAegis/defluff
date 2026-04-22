@@ -9,6 +9,8 @@ export { DefluffError } from './errors.js';
 export type { DefluffErrorCode } from './errors.js';
 export { parseBullets, parseSummary, parseThreadSummary } from './parse.js';
 export {
+  BAIT_SYSTEM_PROMPT,
+  buildBaitUserPrompt,
   buildThreadUserPrompt,
   buildUserPrompt,
   SYSTEM_PROMPT,
@@ -19,7 +21,7 @@ export {
   PROVIDER_KINDS,
   PROVIDER_LABELS,
 } from './providers/index.js';
-export { summarize, summarizeThread } from './summarize.js';
+export { generateBait, summarize, summarizeThread } from './summarize.js';
 export { toUserError } from './user-errors.js';
 export type { UserError, UserErrorAction } from './user-errors.js';
 export {
@@ -43,6 +45,7 @@ export type {
   ProviderKind,
   ProviderRunArgs,
   Summary,
+  GenerateBaitOptions,
   SummarizeOptions,
   SummarizeThreadOptions,
   ThreadAction,

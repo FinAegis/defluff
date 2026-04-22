@@ -33,6 +33,14 @@ export interface PanelOptions {
   thread?: ThreadSummary;
   error?: PanelError;
   onDismiss?: () => void;
+  /**
+   * Callback wired by the content host when a SCAM thread was detected
+   * and the host can produce a bait reply on demand. When present and
+   * the thread verdict is SCAM, the panel renders a "Waste their time"
+   * button; clicking it calls this function and displays the returned
+   * draft in an editable textarea.
+   */
+  onGenerateBait?: () => Promise<string>;
 }
 
 const THREAD_VERDICT_LABELS: Record<ThreadVerdict, string> = {
@@ -74,7 +82,7 @@ export function createPanel(opts: PanelOptions): PanelController {
   if (isError && opts.error) {
     renderError(panel, opts.error);
   } else if (opts.thread) {
-    renderThread(panel, opts.thread);
+    renderThread(panel, opts.thread, opts.onGenerateBait);
   } else if (opts.summary) {
     renderSummary(panel, opts.summary);
   }
@@ -276,20 +284,29 @@ function buildVerdictRow(verdict: Verdict, reason?: string): HTMLElement {
 }
 
 /**
- * Render a thread-mode summary. The structure is:
+ * Render a thread-mode summary. Layout depends on the thread verdict:
  *
- *   [Thread-verdict strip]
- *   ── message 1 ──────────────
- *     [authored] [verdict] [bullets]
- *   ── message 2 ──────────────
- *     ...
- *   [Actions]
+ *   SCAM:
+ *     [Thread-verdict strip — red, pattern-named]
+ *     [Actions list]
+ *     [Waste their time button — generates a bait draft]
+ *     ▸ Per-message detail (collapsed)
  *
- * The thread verdict strip (LEGIT / MIXED / SCAM) is shown FIRST because
- * it's the headline answer — especially for SCAM, the reader should see
- * the pattern name before scrolling through per-message detail.
+ *   LEGIT (or unknown verdict):
+ *     [Thread-verdict strip]
+ *     [Per-message blocks — inline]
+ *     [Actions list]
+ *
+ * The SCAM layout exists because per-message detail on scam threads is
+ * mostly noise — the reader already knows "fake recruiter pitched me",
+ * the headline is the cross-message progression and what to do about
+ * it. Users who want the per-message breakdown click to expand.
  */
-function renderThread(panel: HTMLElement, thread: ThreadSummary): void {
+function renderThread(
+  panel: HTMLElement,
+  thread: ThreadSummary,
+  onGenerateBait?: () => Promise<string>,
+): void {
   const hasAnything =
     thread.messages.length > 0 || !!thread.threadVerdict || thread.actions.length > 0;
 
@@ -310,6 +327,25 @@ function renderThread(panel: HTMLElement, thread: ThreadSummary): void {
     );
   }
 
+  const isScam = thread.threadVerdict === 'scam';
+
+  if (isScam) {
+    // SCAM: Actions first (the concrete answer), then bait button,
+    // then per-message detail behind a disclosure.
+    if (thread.actions.length > 0) {
+      panel.appendChild(buildActionsBlock(thread.actions));
+    }
+    if (onGenerateBait) {
+      panel.appendChild(buildBaitBlock(onGenerateBait));
+    }
+    if (thread.messages.length > 0) {
+      panel.appendChild(buildCollapsedMessagesBlock(thread.messages));
+    }
+    return;
+  }
+
+  // LEGIT or unknown verdict: inline per-message blocks, actions at
+  // the bottom — the per-message detail IS the primary content here.
   for (let i = 0; i < thread.messages.length; i++) {
     const msg = thread.messages[i];
     if (!msg) continue;
@@ -319,6 +355,146 @@ function renderThread(panel: HTMLElement, thread: ThreadSummary): void {
   if (thread.actions.length > 0) {
     panel.appendChild(buildActionsBlock(thread.actions));
   }
+}
+
+function buildCollapsedMessagesBlock(
+  messages: ThreadSummary['messages'],
+): HTMLElement {
+  const disclosure = document.createElement('details');
+  disclosure.className = 'df-thread-detail-disclosure';
+  const summary = document.createElement('summary');
+  summary.textContent = `Per-message detail (${messages.length})`;
+  disclosure.appendChild(summary);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'df-thread-detail-body';
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (!msg) continue;
+    wrapper.appendChild(buildMessageBlock(msg, i === 0));
+  }
+  disclosure.appendChild(wrapper);
+  return disclosure;
+}
+
+function buildBaitBlock(
+  onGenerateBait: () => Promise<string>,
+): HTMLElement {
+  const block = document.createElement('section');
+  block.className = 'df-bait';
+
+  const label = document.createElement('p');
+  label.className = 'df-bait-label';
+  const icon = document.createElement('span');
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = '✉️';
+  const labelText = document.createElement('span');
+  labelText.textContent = 'Your turn';
+  label.appendChild(icon);
+  label.appendChild(labelText);
+  block.appendChild(label);
+
+  const note = document.createElement('p');
+  note.className = 'df-bait-note';
+  note.textContent =
+    'Generate a time-wasting reply they can respond to by producing documentation they do not have. Your call whether to send it.';
+  block.appendChild(note);
+
+  const actions = document.createElement('div');
+  actions.className = 'df-bait-actions';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'df-cta';
+  button.textContent = 'Waste their time';
+  actions.appendChild(button);
+  block.appendChild(actions);
+
+  const resultWrap = document.createElement('div');
+  resultWrap.className = 'df-bait-result';
+  resultWrap.hidden = true;
+  block.appendChild(resultWrap);
+
+  button.addEventListener('click', () => {
+    void runBait(button, resultWrap, onGenerateBait);
+  });
+
+  return block;
+}
+
+async function runBait(
+  button: HTMLButtonElement,
+  result: HTMLElement,
+  onGenerateBait: () => Promise<string>,
+): Promise<void> {
+  button.disabled = true;
+  const originalLabel = button.textContent;
+  button.textContent = 'Writing…';
+  result.hidden = false;
+  result.replaceChildren();
+
+  try {
+    const text = await onGenerateBait();
+    renderBaitDraft(result, text);
+  } catch (err) {
+    renderBaitError(result, err);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalLabel ?? 'Waste their time';
+  }
+}
+
+function renderBaitDraft(host: HTMLElement, draft: string): void {
+  host.replaceChildren();
+
+  const textarea = document.createElement('textarea');
+  textarea.className = 'df-bait-textarea';
+  textarea.value = draft;
+  textarea.rows = Math.min(14, Math.max(6, draft.split('\n').length + 1));
+  textarea.spellcheck = false;
+  host.appendChild(textarea);
+
+  const row = document.createElement('div');
+  row.className = 'df-bait-result-row';
+
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'df-link';
+  copyBtn.textContent = 'Copy';
+  copyBtn.addEventListener('click', () => {
+    void copyToClipboard(textarea.value, copyBtn);
+  });
+  row.appendChild(copyBtn);
+
+  const disclaimer = document.createElement('span');
+  disclaimer.className = 'df-bait-disclaimer';
+  disclaimer.textContent =
+    'You are still talking to a scammer — do not paste anything real.';
+  row.appendChild(disclaimer);
+
+  host.appendChild(row);
+}
+
+async function copyToClipboard(text: string, button: HTMLButtonElement): Promise<void> {
+  const original = button.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = 'Copied';
+  } catch {
+    button.textContent = 'Copy failed';
+  }
+  window.setTimeout(() => {
+    button.textContent = original ?? 'Copy';
+  }, 1500);
+}
+
+function renderBaitError(host: HTMLElement, err: unknown): void {
+  host.replaceChildren();
+  const msg = document.createElement('p');
+  msg.className = 'df-bait-error';
+  msg.textContent =
+    err instanceof Error && err.message
+      ? `Couldn't generate a reply: ${err.message}`
+      : "Couldn't generate a reply. Try again in a moment.";
+  host.appendChild(msg);
 }
 
 function buildThreadVerdictStrip(verdict: ThreadVerdict, reason?: string): HTMLElement {

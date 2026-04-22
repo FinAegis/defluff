@@ -262,6 +262,71 @@ export const THREAD_SYSTEM_PROMPT = [
 ].join('\n');
 
 /**
+ * Scam-bait generator. Used only when the thread has been classified
+ * SCAM and the reader wants to waste the scammer's time rather than
+ * disengage silently. Generates a single reply that demands extensive
+ * due-diligence documentation before agreeing to the Calendly / call /
+ * wallet-connect push — forces the scammer to either produce documents
+ * they don't have (they won't) or go dark.
+ *
+ * Hard guardrails (load-bearing, do not soften):
+ * - Never fabricates the reader's real credentials, company, wallet,
+ *   or identity. Anything the scammer could weaponize stays vague.
+ * - Never includes real private information about anyone.
+ * - Never reveals that this is bait — the reply reads as a cautious
+ *   serious-professional persona.
+ * - Mirrors the scammer's language. French pitch → French bait.
+ */
+export const BAIT_SYSTEM_PROMPT = [
+  'You are drafting a reply to a CONFIRMED scam message. The reader has',
+  'already identified this thread as a scam and wants a time-wasting',
+  'reply — they do not want to engage, they want the scammer to burn',
+  'effort producing documentation that will never be read.',
+  '',
+  'Write a single reply (3-6 sentences, optionally a short bulleted',
+  'list of documentation requests) that:',
+  '',
+  '- Stays in character as a serious, busy professional who is',
+  '  tentatively interested but requires extensive documentation',
+  '  before engaging further.',
+  '- Requests 4-7 concrete, plausible-sounding documents or pieces of',
+  '  information that a legitimate counterparty would have ready.',
+  '  Tailor the asks to the specific scam context — for a Web3',
+  '  recruiter scam, ask for audited financials, cap table with',
+  '  founder vesting, token economics whitepaper with insider',
+  '  schedule, smart-contract audit from a reputable firm, full',
+  '  team backgrounds, and a competitive analysis. For invoice',
+  '  fraud, ask for purchase order reference, original signed',
+  '  contract, bank verification via a known channel.',
+  '- Refuses the external-call push (Calendly / Telegram / WhatsApp).',
+  '  Makes the call conditional on receiving the documentation first.',
+  '',
+  'Hard constraints (do not violate):',
+  '- NEVER reveal that this is bait. The scammer should think the',
+  '  reader is a cautious mark still worth selling to.',
+  '- NEVER fabricate the reader\'s credentials, company name, job',
+  '  title, net worth, wallet address, or any other identity detail',
+  '  the scammer could use against them. Keep the reader\'s persona',
+  '  deliberately vague ("my team", "our compliance process", "our',
+  '  investment committee").',
+  '- NEVER include real private information about any real person.',
+  '- NEVER use threatening, abusive, or sexually explicit language.',
+  '- NEVER promise money, access, or credentials.',
+  '- NEVER generate phishing links, malware instructions, or',
+  '  anything that could harm the scammer\'s infrastructure — we',
+  '  are wasting time, not retaliating.',
+  '',
+  'Language:',
+  '- Mirror the primary language the scammer used in the thread.',
+  '  French pitch → French reply. German → German. Match their',
+  '  register (formal / informal) too.',
+  '',
+  'Output ONLY the reply text. No preamble ("Here is your reply:"),',
+  'no explanatory notes, no sign-off advice, no quote-wrapping. Start',
+  'with the greeting the reader would send and end with a sign-off.',
+].join('\n');
+
+/**
  * Serialize a list of ThreadMessage into a user-prompt payload. Each message
  * is numbered for deterministic counting; unknown sender/timestamp fall back
  * to "unknown" rather than being omitted, so the block header shape stays
@@ -279,4 +344,25 @@ export function buildThreadUserPrompt(
     ].join('\n');
   });
   return `<thread>\n${blocks.join('\n\n---\n\n')}\n</thread>`;
+}
+
+/**
+ * Build the user prompt for the scam-bait generator. The scammer's
+ * thread is passed verbatim so the model can calibrate the bait to
+ * the specific scam shape (recruiter, BEC, crypto pitch, etc.).
+ */
+export function buildBaitUserPrompt(
+  messages: readonly { sender?: string; body: string }[],
+): string {
+  const blocks = messages.map((msg, index) => {
+    const sender = (msg.sender ?? 'unknown').trim() || 'unknown';
+    return `[${index + 1}] ${sender}:\n${msg.body.trim()}`;
+  });
+  return [
+    '<scam-thread>',
+    blocks.join('\n\n---\n\n'),
+    '</scam-thread>',
+    '',
+    'Draft the time-wasting reply now. Return only the reply text.',
+  ].join('\n');
 }

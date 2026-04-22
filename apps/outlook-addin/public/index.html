@@ -188,32 +188,115 @@
     .step h3 { margin: 0 0 6px; font-size: 17px; }
     .step p { margin: 0; color: var(--muted); font-size: 14px; }
 
-    .surfaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-    .surface {
-      padding: 20px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    /* "Where it works" — a vertical rail with platform "stations" hanging off
+       a trunk line on the left. Status LED + platform name + mono domains +
+       inline status tag. Not four identical cards — a system status panel. */
+    .rail {
+      position: relative;
+      margin: 28px 0 0;
+      padding: 0;
+      list-style: none;
     }
-    .surface .title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .surface h3 { margin: 0; font-size: 16px; }
-    .badge {
-      font-size: 11px;
+    .rail::before {
+      content: "";
+      position: absolute;
+      top: 22px;
+      bottom: 22px;
+      left: 7px;
+      width: 1px;
+      background: linear-gradient(
+        180deg,
+        transparent 0,
+        var(--border) 6%,
+        var(--border) 94%,
+        transparent 100%
+      );
+    }
+    .rail-stop {
+      position: relative;
+      padding: 20px 0 20px 36px;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    }
+    .rail-stop:last-child { border-bottom: none; }
+    .rail-stop::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: 26px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--ok);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 14%, transparent);
+    }
+    .rail-stop[data-status="preview"]::before {
+      border-color: var(--preview);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--preview) 16%, transparent);
+      animation: rail-pulse 2.6s ease-in-out infinite;
+    }
+    @keyframes rail-pulse {
+      0%, 100% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--preview) 14%, transparent); }
+      50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--preview) 26%, transparent); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .rail-stop[data-status="preview"]::before { animation: none; }
+    }
+    .rail-head {
+      display: flex;
+      align-items: baseline;
+      gap: 10px 14px;
+      flex-wrap: wrap;
+    }
+    .rail-name {
+      margin: 0;
+      font-size: 17px;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: -0.005em;
+      color: var(--fg);
+    }
+    .rail-domain {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12.5px;
+      color: var(--muted);
+      letter-spacing: -0.01em;
+      word-break: break-all;
+    }
+    .rail-status {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--ok);
       color: var(--ok);
-      background: transparent;
       white-space: nowrap;
     }
-    .badge.preview { border-color: var(--preview); color: var(--preview); }
-    .surface p { margin: 0; font-size: 13px; color: var(--muted); }
+    .rail-stop[data-status="preview"] .rail-status { color: var(--preview); }
+    .rail-desc {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 70ch;
+    }
+    .rail-desc code, .manifesto-text code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.92em;
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--muted) 14%, transparent);
+      color: var(--fg);
+    }
+    .rail-desc a, .manifesto-text a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+    @media (max-width: 520px) {
+      .rail-head { gap: 4px 10px; }
+      .rail-status { margin-left: 0; order: 3; flex-basis: 100%; }
+    }
 
     .skill-callout {
       padding: 28px;
@@ -239,9 +322,66 @@
     th { background: var(--panel); font-weight: 600; font-size: 13px; }
     tr:last-child td { border-bottom: none; }
     td.us { font-weight: 600; color: var(--accent); }
-    .proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 0; }
-    .proof li { padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
-    .proof li strong { display: block; margin-bottom: 4px; }
+    /* "Proof points" — an editorial manifesto. No boxes. Roman numerals in
+       italic serif (accent blue) sit in a dedicated left column separated
+       from the body by a hairline rule. Titles are period-terminated
+       declarations; items separated by a faint horizontal rule. The serif
+       stack is system-only — distinctive on Apple/Linux, falls back to
+       Times-family on Windows without loading a webfont. */
+    .manifesto {
+      margin: 28px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0;
+    }
+    .manifesto-item {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      column-gap: 26px;
+      align-items: baseline;
+      padding: 22px 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    }
+    .manifesto-item:first-child { padding-top: 6px; }
+    .manifesto-item:last-child { border-bottom: none; padding-bottom: 6px; }
+    .manifesto-numeral {
+      font-family: "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman",
+        "Droid Serif", Times, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 38px;
+      line-height: 0.9;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      text-align: right;
+      padding-right: 18px;
+      border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+      align-self: center;
+    }
+    .manifesto-body { display: flex; flex-direction: column; gap: 4px; }
+    .manifesto-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--fg);
+    }
+    .manifesto-text {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 62ch;
+    }
+    @media (max-width: 520px) {
+      .manifesto-item {
+        grid-template-columns: 44px 1fr;
+        column-gap: 16px;
+        padding: 18px 0;
+      }
+      .manifesto-numeral { font-size: 26px; padding-right: 10px; }
+    }
     footer {
       padding: 32px 0;
       border-top: 1px solid var(--border);
@@ -341,24 +481,40 @@
     <div class="container">
       <h2>Where it works</h2>
       <p class="lede">Primary targets are Gmail and LinkedIn Messaging. Outlook Web is supported. The Office.js desktop add-in is available as a preview.</p>
-      <div class="surfaces">
-        <div class="surface">
-          <div class="title"><h3>Gmail</h3><span class="badge">Ready</span></div>
-          <p>mail.google.com. Button appears above each expanded message.</p>
-        </div>
-        <div class="surface">
-          <div class="title"><h3>LinkedIn Messaging</h3><span class="badge">Ready</span></div>
-          <p>linkedin.com/messaging. Optional — granted on demand. Only shows on messages over 400 characters.</p>
-        </div>
-        <div class="surface">
-          <div class="title"><h3>Outlook Web</h3><span class="badge">Ready</span></div>
-          <p>outlook.office.com, outlook.live.com, and the new outlook.cloud.microsoft TLD.</p>
-        </div>
-        <div class="surface">
-          <div class="title"><h3>Outlook desktop</h3><span class="badge preview">Preview</span></div>
-          <p>Office.js add-in for desktop Outlook (Windows / Mac). Sideload <a href="manifest.xml">manifest.xml</a> — works, but less polished than the web extension.</p>
-        </div>
-      </div>
+      <ul class="rail">
+        <li class="rail-stop" data-status="ready">
+          <div class="rail-head">
+            <h3 class="rail-name">Gmail</h3>
+            <span class="rail-domain">mail.google.com</span>
+            <span class="rail-status">Ready</span>
+          </div>
+          <p class="rail-desc">The De-Fluff button appears above each expanded message.</p>
+        </li>
+        <li class="rail-stop" data-status="ready">
+          <div class="rail-head">
+            <h3 class="rail-name">LinkedIn Messaging</h3>
+            <span class="rail-domain">linkedin.com/messaging</span>
+            <span class="rail-status">Ready · opt-in</span>
+          </div>
+          <p class="rail-desc">Granted on demand from the options page. Only appears on messages over 400 characters.</p>
+        </li>
+        <li class="rail-stop" data-status="ready">
+          <div class="rail-head">
+            <h3 class="rail-name">Outlook Web</h3>
+            <span class="rail-domain">outlook.office.com · outlook.live.com · outlook.cloud.microsoft</span>
+            <span class="rail-status">Ready</span>
+          </div>
+          <p class="rail-desc">All four Microsoft Outlook Web origins, including the new <code>outlook.cloud.microsoft</code> tenant.</p>
+        </li>
+        <li class="rail-stop" data-status="preview">
+          <div class="rail-head">
+            <h3 class="rail-name">Outlook Desktop</h3>
+            <span class="rail-domain">Office.js add-in · sideload manifest</span>
+            <span class="rail-status">Preview</span>
+          </div>
+          <p class="rail-desc">Office.js add-in for Outlook on Windows / Mac. Sideload <a href="manifest.xml">manifest.xml</a> — works, but less polished than the web extension.</p>
+        </li>
+      </ul>
     </div>
   </section>
 
@@ -452,11 +608,35 @@
   <section class="band">
     <div class="container">
       <h2>Proof points</h2>
-      <ul class="proof">
-        <li><strong>MIT licensed</strong>Audit the whole thing over coffee. ~2,000 lines of TypeScript.</li>
-        <li><strong>Zero telemetry</strong>No analytics, no crash reports, no usage SDKs in the bundle.</li>
-        <li><strong>Host-scoped permissions</strong>Gmail, Outlook, and LinkedIn — nothing else. Never <code>&lt;all_urls&gt;</code>.</li>
-        <li><strong>Threat model published</strong>See <a href="https://github.com/FinAegis/defluff/blob/main/SECURITY.md">SECURITY.md</a> for what the product doesn't try to defend against.</li>
+      <ul class="manifesto">
+        <li class="manifesto-item">
+          <span class="manifesto-numeral" aria-hidden="true">I</span>
+          <div class="manifesto-body">
+            <h3 class="manifesto-title">MIT licensed.</h3>
+            <p class="manifesto-text">Audit the whole thing over coffee. Around two thousand lines of TypeScript.</p>
+          </div>
+        </li>
+        <li class="manifesto-item">
+          <span class="manifesto-numeral" aria-hidden="true">II</span>
+          <div class="manifesto-body">
+            <h3 class="manifesto-title">Zero telemetry.</h3>
+            <p class="manifesto-text">No analytics, no crash reports, no usage SDKs in the bundle.</p>
+          </div>
+        </li>
+        <li class="manifesto-item">
+          <span class="manifesto-numeral" aria-hidden="true">III</span>
+          <div class="manifesto-body">
+            <h3 class="manifesto-title">Host-scoped permissions.</h3>
+            <p class="manifesto-text">Gmail, Outlook, and LinkedIn — nothing else. Never <code>&lt;all_urls&gt;</code>.</p>
+          </div>
+        </li>
+        <li class="manifesto-item">
+          <span class="manifesto-numeral" aria-hidden="true">IV</span>
+          <div class="manifesto-body">
+            <h3 class="manifesto-title">Threat model published.</h3>
+            <p class="manifesto-text">See <a href="https://github.com/FinAegis/defluff/blob/main/SECURITY.md">SECURITY.md</a> for what the product doesn't try to defend against.</p>
+          </div>
+        </li>
       </ul>
     </div>
   </section>

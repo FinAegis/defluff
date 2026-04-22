@@ -215,4 +215,31 @@ button.link:hover { text-decoration: underline; background: none; color: var(--a
 .error p { margin: 0; }
 .error button { align-self: flex-start; margin-top: 4px; }
 
+/* Collapsible raw provider response for debugging — same shape as the
+   extension panel. Hidden behind a disclosure so the preset copy stays
+   tidy, one click exposes the provider JSON so a developer can see
+   exactly why a request was rejected. */
+.error-details { margin-top: 4px; font-size: 12px; }
+.error-details summary {
+  cursor: pointer;
+  color: var(--muted);
+  user-select: none;
+  padding: 2px 0;
+}
+.error-details summary:hover { color: var(--fg); }
+.error-details-body {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 240px;
+}
+
 .settings-link { margin-top: 14px; font-size: 13px; color: var(--muted); }

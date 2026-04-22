@@ -209,6 +209,39 @@ export const CONTENT_CSS = `
 .df-panel.df-error p { margin: 4px 0 0; color: var(--df-fg); font-size: 13px; }
 .df-panel .df-error-icon { font-size: 14px; }
 
+/* Collapsible provider-response block for debugging. Hidden behind a
+   disclosure so the normal case (friendly preset) stays clean, but one
+   click exposes the raw provider JSON so a developer can see exactly
+   why the request was rejected. */
+.df-error-details {
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+.df-error-details summary {
+  cursor: pointer;
+  color: var(--df-muted);
+  user-select: none;
+  padding: 2px 0;
+}
+.df-error-details summary:hover { color: var(--df-fg); }
+.df-error-details summary:focus-visible { outline: 2px solid var(--df-accent); outline-offset: 2px; border-radius: 2px; }
+.df-error-details-body {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.45;
+  background: var(--df-bg);
+  border: 1px solid var(--df-panel-border);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--df-fg);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
 /* Screen-reader-only live region */
 .df-sr-only {
   position: absolute;

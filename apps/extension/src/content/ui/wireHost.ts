@@ -331,6 +331,7 @@ function buildErrorPayload(
 ): PanelError {
   const userError = toUserError(response.code, response.error);
   const base: PanelError = { title: userError.title, explanation: userError.explanation };
+  if (userError.details) base.details = userError.details;
   if (userError.action === 'configure') {
     base.cta = {
       label: 'Open settings',

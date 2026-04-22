@@ -18,6 +18,13 @@ export interface PanelController {
 export interface PanelError {
   title: string;
   explanation: string;
+  /**
+   * Raw provider response. Rendered as a collapsible "Provider response"
+   * block under the friendly explanation so developers can diagnose
+   * model-name typos, rate-limit wording, and other provider-specific
+   * signals that the preset explanation would otherwise hide.
+   */
+  details?: string;
   cta?: { label: string; onClick: () => void };
 }
 
@@ -111,6 +118,19 @@ function renderError(panel: HTMLElement, error: PanelError): void {
     const p = document.createElement('p');
     p.textContent = error.explanation;
     panel.appendChild(p);
+  }
+
+  if (error.details) {
+    const disclosure = document.createElement('details');
+    disclosure.className = 'df-error-details';
+    const summary = document.createElement('summary');
+    summary.textContent = 'Provider response';
+    disclosure.appendChild(summary);
+    const body = document.createElement('pre');
+    body.className = 'df-error-details-body';
+    body.textContent = error.details;
+    disclosure.appendChild(body);
+    panel.appendChild(disclosure);
   }
 }
 

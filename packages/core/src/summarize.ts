@@ -1,6 +1,8 @@
 import { DefluffError } from './errors.js';
 import { parseSummary, parseThreadSummary } from './parse.js';
 import {
+  BAIT_SYSTEM_PROMPT,
+  buildBaitUserPrompt,
   buildThreadUserPrompt,
   buildUserPrompt,
   SYSTEM_PROMPT,
@@ -13,6 +15,7 @@ import {
   openaiCompatibleAdapter,
 } from './providers/index.js';
 import type {
+  GenerateBaitOptions,
   ProviderConfig,
   ProviderRunArgs,
   Summary,
@@ -80,6 +83,40 @@ export async function summarizeThread(
     );
   }
   return thread;
+}
+
+/**
+ * Generate a time-wasting bait reply to a confirmed scam thread. The
+ * caller is expected to only invoke this when the thread has been
+ * classified SCAM — there is no verdict check here; the button that
+ * triggers this is only shown in that case.
+ *
+ * Returns the raw reply text, trimmed. The panel renders it into an
+ * editable textarea so the reader can tweak before copying.
+ */
+export async function generateBait(opts: GenerateBaitOptions): Promise<string> {
+  const { messages, provider, signal } = opts;
+  if (messages.length === 0) {
+    throw new DefluffError('bad_request', 'No thread to bait.');
+  }
+  if (!messages.some((m) => m.body.trim().length > 0)) {
+    throw new DefluffError('bad_request', 'Thread has no non-empty messages.');
+  }
+
+  const args: ProviderRunArgs = {
+    systemPrompt: BAIT_SYSTEM_PROMPT,
+    userPrompt: buildBaitUserPrompt(messages),
+    ...(signal ? { signal } : {}),
+  };
+
+  const raw = await dispatchProvider(provider, args);
+  const text = raw.trim();
+  if (!text) {
+    throw new DefluffError('server', 'Provider returned no bait text.', {
+      detail: raw,
+    });
+  }
+  return text;
 }
 
 function dispatchProvider(provider: ProviderConfig, args: ProviderRunArgs): Promise<string> {

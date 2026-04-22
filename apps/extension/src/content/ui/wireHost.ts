@@ -3,7 +3,9 @@ import type {
   SummarizeResponse,
   SummarizeThreadResponse,
 } from '../../shared/messages.js';
+import type { GenerateBaitResponse } from '../../shared/messages.js';
 import {
+  MSG_GENERATE_BAIT,
   MSG_OPEN_OPTIONS,
   MSG_SUMMARIZE,
   MSG_SUMMARIZE_THREAD,
@@ -276,6 +278,29 @@ function wireTarget(
       ? buildErrorPayload(activeResponse, dismiss)
       : undefined;
 
+    // Capture the raw thread so the panel's "Waste their time" button
+    // can reuse it to generate a bait draft later — the panel doesn't
+    // own the thread itself; it just calls back to the host.
+    const capturedThread = useThread ? (thread as ThreadMessage[]) : undefined;
+    const generateBait = capturedThread
+      ? async (): Promise<string> => {
+          let res: GenerateBaitResponse | undefined;
+          try {
+            res = await chrome.runtime.sendMessage({
+              type: MSG_GENERATE_BAIT,
+              messages: capturedThread,
+            });
+          } catch (err) {
+            throw err instanceof Error ? err : new Error('Extension error');
+          }
+          if (!res || typeof res !== 'object' || !('ok' in res)) {
+            throw new Error('No response from the extension. Try again.');
+          }
+          if (!res.ok) throw new Error(res.error);
+          return res.text;
+        }
+      : undefined;
+
     const panel = createPanel({
       ...(useThread && activeResponse.ok
         ? { thread: (activeResponse as { thread: ThreadSummary }).thread }
@@ -284,6 +309,7 @@ function wireTarget(
         ? { summary: (activeResponse as { summary: Summary }).summary }
         : {}),
       ...(errorPayload ? { error: errorPayload } : {}),
+      ...(generateBait ? { onGenerateBait: generateBait } : {}),
       onDismiss: dismiss,
     });
     decoratePanel?.(panel.element);

@@ -344,4 +344,85 @@ export const CONTENT_CSS = `
 /* Match the SCAM palette around the entire panel when the thread reads as
    a scam — the reader needs the hint that this is not just informational. */
 .df-panel[data-thread-verdict="scam"] { border-left-color: var(--df-error-accent); }
+
+/* Collapsible per-message detail. Only used on SCAM threads where the
+   Actions + thread-verdict strip is the headline and the per-message
+   breakdown is secondary. Disclosure keeps it one click away. */
+.df-thread-detail-disclosure {
+  margin: 12px 0 0;
+  font-size: 13px;
+}
+.df-thread-detail-disclosure summary {
+  cursor: pointer;
+  color: var(--df-muted);
+  user-select: none;
+  padding: 2px 0;
+  font-weight: 500;
+}
+.df-thread-detail-disclosure summary:hover { color: var(--df-fg); }
+.df-thread-detail-body {
+  margin-top: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--df-panel-border);
+}
+
+/* "Waste their time" bait block — the anti-AI payoff. Visually distinct
+   from the rest of the panel with a tinted background and border so
+   the button reads as an offered action, not a repeat of the Actions
+   list above. */
+.df-bait {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--df-panel-border);
+  border-radius: 6px;
+  background: var(--df-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.df-bait-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--df-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.df-bait-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--df-muted);
+  line-height: 1.5;
+}
+.df-bait-actions { display: flex; gap: 10px; align-items: center; }
+.df-bait-result { margin: 4px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.df-bait-textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding: 10px 12px;
+  border: 1px solid var(--df-panel-border);
+  border-radius: 4px;
+  background: var(--df-panel-bg);
+  color: var(--df-fg);
+  resize: vertical;
+  min-height: 120px;
+  max-height: 320px;
+  outline: none;
+}
+.df-bait-textarea:focus { border-color: var(--df-accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--df-accent) 16%, transparent); }
+.df-bait-result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--df-muted);
+}
+.df-bait-disclaimer { line-height: 1.45; flex: 1 1 200px; }
+.df-bait-error { margin: 0; color: var(--df-error-accent); font-size: 13px; }
 `;

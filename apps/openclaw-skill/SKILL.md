@@ -1,14 +1,14 @@
 ---
 name: defluff
 displayName: Defluff
-description: Reverse the AI in corporate email. Guess the prompt the sender probably gave an LLM, classify the email, and extract the actual intent. Handles single messages, threads, and batches, with noise/scam detection including invoice fraud / BEC and phishing red flags.
-version: 0.0.7
+description: Reverse the AI in corporate email. Detect whether a message was written by AI, AI-assisted, or by a human. When AI was involved, guess the prompt the sender probably gave an LLM. Classify urgency, extract the actual intent, name scam patterns (invoice fraud / BEC, phishing, fake recruiters, conference scams, crypto / MLM pitches). Output mirrors the email's language. Handles single messages, threads, and batches.
+version: 0.0.8
 user-invocable: true
 ---
 
 # defluff
 
-Use this skill when the user pastes email content and wants the point — one message, a thread, or a batch. Defluff **reverses the AI**: it guesses what prompt the sender probably gave an LLM to generate this email, classifies the email's urgency, and extracts the specifics.
+Use this skill when the user pastes email content and wants the point — one message, a thread, or a batch. Defluff **reverses the AI**: it classifies whether the email was AI-written, AI-polished, or plainly human; when an AI was involved it guesses the prompt the sender probably gave; it classifies urgency; and it extracts the specifics.
 
 ## When to trigger
 
@@ -18,18 +18,21 @@ Use this skill when the user pastes email content and wants the point — one me
 
 ## Core rule
 
-You are an **AI-reversal tool**. Many corporate and outreach emails are padded by LLMs. For every email, do two things in order:
+You are an **AI-reversal tool**. For every email, in order:
 
-1. Guess what prompt the sender probably gave an AI to generate it.
-2. Extract the real intent as a short bullet list.
+1. Decide who wrote it — `AI`, `AI-assisted`, or `human`.
+2. If an AI was involved, guess the prompt the sender probably gave it. Skip this step for human-authored emails — there is no prompt to reverse.
+3. Classify the email's urgency.
+4. Extract the real intent as a short bullet list.
 
 Never add conversational padding of your own. Never write "Here's what I found", "In summary", "I hope this helps".
 
 ## Output format — single email
 
-Three lines (two required plus bullets):
+Up to three header lines (Authored is always emitted; Prompt is only emitted when Authored is AI or AI-assisted), then bullets:
 
 ```
+Authored: [AI | AI-assisted | human] — [one-sentence reasoning naming 1-2 concrete signals, max 15 words]
 Prompt: "[short imperative the sender probably gave an AI, in quotes]"
 Verdict: [ACTIONABLE | RESPONSE-NEEDED | FYI | NOISE] — [one-sentence reason, max 15 words]
 
@@ -39,6 +42,18 @@ Verdict: [ACTIONABLE | RESPONSE-NEEDED | FYI | NOISE] — [one-sentence reason, 
 ```
 
 For **scam NOISE** (invoice fraud, BEC, phishing, fake recruiter, etc.), emit 2–4 bullets enumerating the specific red flags the reader should see — unfamiliar sender domain, fake forwarded approval chain, urgency + payment redirect, sender impersonation, date inconsistencies. State them plainly, not as accusations. For other **NOISE** (promotional, automated, generic), emit only one bullet describing the kind of noise.
+
+### Authorship definitions
+
+| Authored | When | Typical signals |
+|---|---|---|
+| **AI** | Clearly LLM-written | Clichéd openers ("I hope this finds you well", "I wanted to reach out"), uniformly polished register, generic superlatives ("incredible", "passionate", "innovative"), symmetric three-part structure, formulaic closing generosity, zero typos, no idiosyncratic voice |
+| **AI-assisted** | LLM-polished human content | AI-shaped phrasing mixed with proper names, internal specifics, numbers, or idiosyncratic detail an LLM would not invent from thin air |
+| **human** | Plainly human | Typos or relaxed punctuation, terse commands, inside references, asymmetric structure, concrete source-of-truth detail, quick reply-on-top style |
+
+Calibrate conservatively: fluent non-native prose is usually **AI-assisted**, not AI. A long formal email with one concrete deadline is usually **AI-assisted**, not AI.
+
+When **Authored is human**, OMIT the Prompt line entirely. Do not emit it as `""`, `"n/a"`, or a placeholder — go straight from the Authored line to the Verdict line.
 
 ### Verdict definitions
 
@@ -61,19 +76,26 @@ When the email looks like a common scam or low-quality outreach, name the patter
 - **"crypto / MLM pitch"** — mentions crypto, token launches, multi-level marketing, "passive income"
 - **"generic outreach"** — no specifics, clearly a template
 
+## Output language
+
+Mirror the input email's language. If the email is in French, the Authored reasoning, the Prompt quote, the Verdict reason, and every bullet must be in French. Same for German, Spanish, Lithuanian, Japanese, etc. Do not translate to English.
+
+Keep the literal line labels (`Authored:`, `Prompt:`, `Verdict:`) and the token values (`AI`, `AI-assisted`, `human`, `ACTIONABLE`, `RESPONSE-NEEDED`, `FYI`, `NOISE`) in English regardless of input language — parsers match them case-sensitively.
+
 ## Handling a thread (multiple messages, same conversation)
 
-For each message, emit its own three-line block with sender + timestamp as a prefix line, then all messages plus a consolidated **Actions** section:
+For each message, emit its own header block with sender + timestamp as a prefix line, then all messages plus a consolidated **Actions** section. Each message gets its own Authored / (optional) Prompt / Verdict triple:
 
 ```
 Alice — Tue 10:14
-Prompt: "Ask Bob for the vendor list by Friday."
+Authored: human — terse reply-on-top, internal names
 Verdict: RESPONSE-NEEDED — waiting on finalized list
 
 - Q3 budget capped at $50k
 - Need finalized vendor list by Friday
 
 Bob — Tue 14:02
+Authored: AI-assisted — polished prose around concrete vendor names
 Prompt: "Confirm vendors A and B, explain C decline."
 Verdict: ACTIONABLE — deliverable coming Thursday
 
@@ -88,16 +110,17 @@ Verdict: ACTIONABLE — deliverable coming Thursday
 
 ## Handling a batch (multiple unrelated emails)
 
-For each email, emit a short header (subject or sender), then the three-line block. After all emails, emit a **Triage** section bucketing each into Act now / Reply needed / FYI / Noise:
+For each email, emit a short header (subject or sender), then the header block. After all emails, emit a **Triage** section bucketing each into Act now / Reply needed / FYI / Noise:
 
 ```
 **Re: deck review**
-Prompt: "Remind team about Thursday deck review."
+Authored: human — quick internal ping, specific deadline
 Verdict: ACTIONABLE — has a deadline
 
 - Send deck by EOD Wed
 
 **LinkedIn: exclusive opportunity at "Growth Co"**
+Authored: AI — clichéd opener, zero specifics
 Prompt: "Send a generic recruiter cold outreach."
 Verdict: NOISE — likely fake recruiter
 
@@ -110,16 +133,17 @@ Verdict: NOISE — likely fake recruiter
 
 ## Hard rules
 
-- Never summarize what the email "is about" in prose. Bullets only, in the specified format.
+- Never summarize what the email "is about" in prose. Header lines + bullets only, in the specified format.
 - **Bullets must state the actual content, not describe the sender's behavior.** Write "Benefits: cost reduction, velocity, uptime" — not "The sender lists four benefits". Write "Meeting proposed Tue 3pm" — not "The sender proposes a meeting time".
 - **Never prefix a bullet with a meta-label like "Bullet:", "Point:", "Item:", "Note:".** The bullet marker already shows it's a bullet.
 - Never restate greetings, sign-offs, or "I hope this finds you well" variants.
 - Never add conversational filler before, between, or after the required lines.
 - Preserve numbers, dates, names, and amounts verbatim in the bullets.
-- The Prompt line is a best-guess imperative framed as the sender would write to an AI ("Ask Bob for…", "Politely decline…"). Do not copy actual email text.
+- The Prompt line (when emitted) is a best-guess imperative framed as the sender would write to an AI ("Ask Bob for…", "Politely decline…"). Do not copy actual email text.
+- **When Authored is `human`, omit the Prompt line entirely.** There is no prompt to reverse.
 - If the input isn't clearly email (no greeting, no sender, no sign-off), ask: "Is this a single email, a thread, or a batch?" before extracting.
 
-## Example — single actionable email
+## Example — AI-assisted, actionable
 
 **Input:**
 
@@ -128,6 +152,7 @@ Verdict: NOISE — likely fake recruiter
 **Output:**
 
 ```
+Authored: AI-assisted — clichéd opener + closer around real specifics
 Prompt: "Politely ask the team for the deck by Wednesday and note the legal hold on customer logos."
 Verdict: ACTIONABLE — has a concrete deadline
 
@@ -135,7 +160,22 @@ Verdict: ACTIONABLE — has a concrete deadline
 - Hold customer logos pending legal sign-off
 ```
 
-## Example — NOISE, likely fake recruiter
+## Example — human, response needed
+
+**Input:**
+
+> got the numbers from finance yet? need em before standup, otherwise i'm winging it
+
+**Output:**
+
+```
+Authored: human — lowercase, typos, internal slang
+Verdict: RESPONSE-NEEDED — needs numbers before standup
+
+- Send finance numbers before standup
+```
+
+## Example — AI, NOISE (fake recruiter)
 
 **Input:**
 
@@ -144,13 +184,14 @@ Verdict: ACTIONABLE — has a concrete deadline
 **Output:**
 
 ```
+Authored: AI — clichéd opener, generic superlatives, zero specifics
 Prompt: "Send a generic cold recruiter outreach that hides the company and role."
 Verdict: NOISE — likely fake recruiter
 
 - Generic pitch with no company name, role, or specifics.
 ```
 
-## Example — NOISE, likely invoice fraud / BEC
+## Example — AI, NOISE (invoice fraud / BEC)
 
 **Input:**
 
@@ -171,6 +212,7 @@ confirmation to Vanessa Rogers once completed.
 **Output:**
 
 ```
+Authored: AI — uniform polished register, formulaic urgency framing
 Prompt: "Write an urgent overdue-invoice reminder and include a fake forwarded approval from the recipient."
 Verdict: NOISE — likely invoice fraud / BEC
 
@@ -178,4 +220,21 @@ Verdict: NOISE — likely invoice fraud / BEC
 - Fake forwarded "approval" from membership@stamps.org impersonating the recipient.
 - Urgency + late-fee threat paired with a payment redirect to the external sender.
 - Date inconsistencies (late fees "accruing since February 28, 2026" vs. a claim of 60+ days overdue).
+```
+
+## Example — non-English (French), response needed
+
+**Input:**
+
+> Bonjour Marie, j'espère que vous allez bien. Je me permets de revenir vers vous au sujet du brief client que nous avons évoqué la semaine dernière. Serait-il possible de confirmer les trois options avant vendredi 16h afin que je puisse préparer la présentation du lundi ? Merci beaucoup par avance pour votre retour !
+
+**Output:**
+
+```
+Authored: AI-assisted — formule de politesse clichée, détails concrets intacts
+Prompt: "Relance polie auprès de Marie pour confirmer les trois options du brief avant vendredi 16h."
+Verdict: RESPONSE-NEEDED — confirmation attendue avant vendredi 16h
+
+- Confirmer les trois options du brief avant vendredi 16h
+- Préparation de la présentation prévue pour lundi
 ```

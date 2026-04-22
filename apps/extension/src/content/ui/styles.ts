@@ -123,6 +123,20 @@ export const CONTENT_CSS = `
   font-size: 14px;
   color: var(--df-fg);
 }
+/* When the email was written by a human there is no prompt to reverse.
+   The authored block stays, but the block's tint drops to a neutral panel
+   background so it visually reads as "nothing to see here, just a badge"
+   rather than carrying the same weight as a reversed-prompt block. */
+.df-prompt[data-authored="human"] {
+  background: transparent;
+  padding: 0 0 4px;
+}
+.df-prompt[data-authored="human"] .df-prompt-label { color: var(--df-muted); }
+.df-authored-reason {
+  font-style: normal;
+  color: var(--df-muted);
+  font-size: 13px;
+}
 
 /* Verdict row — icon + label + reason */
 .df-verdict {

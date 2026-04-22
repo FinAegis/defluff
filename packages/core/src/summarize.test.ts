@@ -11,6 +11,7 @@ function mockFetchOnce(status: number, payload: unknown): void {
 }
 
 const MODEL_RESPONSE = [
+  'Authored: AI-assisted — clichéd opener around a real deadline',
   'Prompt: "Ask the team for the deck by EOD Wednesday."',
   'Verdict: ACTIONABLE — has a concrete deadline',
   '',
@@ -37,6 +38,7 @@ describe('summarize', () => {
 
     expect(result.bullets).toHaveLength(3);
     expect(result.verdict).toBe('actionable');
+    expect(result.authored).toBe('ai-assisted');
     expect(result.reversedPrompt).toMatch(/deck by EOD Wednesday/);
   });
 

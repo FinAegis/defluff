@@ -31,7 +31,13 @@ English (en-US). Add more as community translations land.
 ```
 Corporate email is being drowned in AI-generated filler. Half of every message is restated context, "I hope this finds you well," and softening qualifiers that exist only because a model was asked to pad a one-line request into four paragraphs.
 
-Defluff adds a one-click "De-Fluff" button next to emails in Gmail, Outlook Web, and LinkedIn messages. Click it — the message collapses into 3–5 bullets of what the sender actually wanted, plus a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE) and a reversal of the likely prompt behind the email.
+Defluff adds a one-click "De-Fluff" button next to emails in Gmail, Outlook Web, and LinkedIn messages. Click it — the message collapses into 3–5 bullets of what the sender actually wanted, plus a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE). When the email was actually written by AI, Defluff reverses it: one line naming the prompt the sender probably gave their LLM. When the email was written by a human, Defluff says so and doesn't fake it.
+
+🤖 AI-AUTHORSHIP DETECTION
+Defluff classifies every email as AI-written, AI-polished, or human. You only see "they probably asked an AI to write this" when that's actually true — human messages are labelled as human, not mislabelled as prompts.
+
+🌍 YOUR LANGUAGE
+The summary, reversed prompt, verdict reason, and bullets come back in the same language as the email — French email gets French bullets, German email gets German bullets. No forced-English summaries.
 
 What makes Defluff different is the architecture.
 
@@ -71,6 +77,7 @@ Short version: no backend, no analytics, no account. Your email content goes onl
 SUPPORT
 • Issues & feedback: github.com/FinAegis/defluff/issues
 • Source: github.com/FinAegis/defluff (MIT)
+• Buy us a coffee (optional): buymeacoffee.com/finaegis
 ```
 
 _(Chrome Web Store: max 16,000 chars. Current: ~2,200.)_

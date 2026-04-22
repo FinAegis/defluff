@@ -1,4 +1,4 @@
-import type { Summary, Verdict } from './types.js';
+import type { Authored, Summary, Verdict } from './types.js';
 
 const BULLET_PATTERNS: readonly RegExp[] = [
   /^[-*•·]\s+(.+)$/,
@@ -14,6 +14,14 @@ const VERDICT_MAP: Record<string, Verdict> = {
   NOISE: 'noise',
 };
 
+const AUTHORED_MAP: Record<string, Authored> = {
+  'AI-ASSISTED': 'ai-assisted',
+  'AI ASSISTED': 'ai-assisted',
+  AIASSISTED: 'ai-assisted',
+  AI: 'ai',
+  HUMAN: 'human',
+};
+
 /**
  * Parse a model response into a structured Summary. The LLM is instructed
  * to produce lines in a specific order, but we parse leniently so minor
@@ -26,6 +34,15 @@ export function parseSummary(raw: string): Summary {
     // Strip bold markers early so every downstream matcher can assume plain text.
     const line = rawLine.replace(/\*\*/g, '').replace(/__/g, '').trim();
     if (!line) continue;
+
+    if (result.authored === undefined) {
+      const authoredPair = extractAuthoredLine(line);
+      if (authoredPair) {
+        result.authored = authoredPair.authored;
+        if (authoredPair.reason) result.authoredReason = authoredPair.reason;
+        continue;
+      }
+    }
 
     if (result.reversedPrompt === undefined) {
       const prompt = extractPromptLine(line);
@@ -62,11 +79,21 @@ export function parseBullets(raw: string): string[] {
 function extractPromptLine(line: string): string | undefined {
   const match = /^prompt\s*[:\-—]\s*(.+)$/i.exec(line);
   if (!match || !match[1]) return undefined;
-  return stripQuotes(match[1].trim());
+  const stripped = stripQuotes(match[1].trim());
+  // A Prompt line is only emitted when authorship is AI/AI-assisted. If the
+  // model lapses and writes an empty placeholder ("", "n/a", "none"), treat
+  // it as absent so the UI can cleanly omit the reversed-prompt block.
+  if (!stripped) return undefined;
+  if (/^(?:n\/?a|none|not\s+applicable)$/i.test(stripped)) return undefined;
+  return stripped;
 }
 
 // Sort once at module scope; keys are static.
 const SORTED_VERDICT_KEYS = Object.keys(VERDICT_MAP).sort(
+  (a, b) => b.length - a.length,
+);
+
+const SORTED_AUTHORED_KEYS = Object.keys(AUTHORED_MAP).sort(
   (a, b) => b.length - a.length,
 );
 
@@ -93,6 +120,30 @@ function extractVerdictLine(
     if (!verdict) continue;
     const reason = rest.slice(key.length).replace(/^[\s—–\-:,.;]+/, '').trim();
     return reason ? { verdict, reason } : { verdict };
+  }
+  return undefined;
+}
+
+function extractAuthoredLine(
+  line: string,
+): { authored: Authored; reason?: string } | undefined {
+  const match = /^authored\s*[:\-—]\s*(.+)$/i.exec(line);
+  if (!match || !match[1]) return undefined;
+  const rest = match[1].trim();
+  const upper = rest.toUpperCase();
+
+  // Longest-first prevents "AI" from eating "AI-ASSISTED". Boundary check
+  // uses the same logic as the verdict matcher, but treats "-" and " " as
+  // internal separators in known multi-word keys (already collapsed in
+  // the map key variants).
+  for (const key of SORTED_AUTHORED_KEYS) {
+    if (!upper.startsWith(key)) continue;
+    const boundary = upper.charAt(key.length);
+    if (boundary !== '' && /[A-Z0-9]/.test(boundary)) continue;
+    const authored = AUTHORED_MAP[key];
+    if (!authored) continue;
+    const reason = rest.slice(key.length).replace(/^[\s—–\-:,.;]+/, '').trim();
+    return reason ? { authored, reason } : { authored };
   }
   return undefined;
 }

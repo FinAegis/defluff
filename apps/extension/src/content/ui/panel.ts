@@ -1,5 +1,12 @@
-import type { Summary, Verdict } from '@defluff/core';
-import { formatReversedPrompt, VERDICT_ICONS, VERDICT_LABELS } from '@defluff/core';
+import type { Authored, Summary, Verdict } from '@defluff/core';
+import {
+  AUTHORED_ICONS,
+  AUTHORED_LABELS,
+  AUTHORED_PROMPT_LABELS,
+  formatReversedPrompt,
+  VERDICT_ICONS,
+  VERDICT_LABELS,
+} from '@defluff/core';
 import { CONTENT_CSS } from './styles.js';
 
 export interface PanelController {
@@ -88,7 +95,11 @@ function renderError(panel: HTMLElement, error: PanelError): void {
 }
 
 function renderSummary(panel: HTMLElement, summary: Summary): void {
-  const hasContent = !!summary.reversedPrompt || !!summary.verdict || summary.bullets.length > 0;
+  const hasContent =
+    !!summary.authored ||
+    !!summary.reversedPrompt ||
+    !!summary.verdict ||
+    summary.bullets.length > 0;
 
   if (!hasContent) {
     // Defensive: should never happen (summarize() throws on empty with non-noise
@@ -102,9 +113,8 @@ function renderSummary(panel: HTMLElement, summary: Summary): void {
     return;
   }
 
-  if (summary.reversedPrompt) {
-    panel.appendChild(buildPromptBlock(summary.reversedPrompt));
-  }
+  const authoredBlock = buildAuthoredBlock(summary);
+  if (authoredBlock) panel.appendChild(authoredBlock);
 
   if (summary.verdict) {
     panel.appendChild(buildVerdictRow(summary.verdict, summary.verdictReason));
@@ -121,7 +131,62 @@ function renderSummary(panel: HTMLElement, summary: Summary): void {
   }
 }
 
-function buildPromptBlock(reversedPrompt: string): HTMLElement {
+/**
+ * Combined authorship + reversed-prompt block. For AI/AI-assisted emails we
+ * show the detection badge and the reversed prompt. For human-authored
+ * emails we show only the badge — there is no prompt to reverse, and this
+ * is the whole point of the authorship step: stop claiming "they probably
+ * asked an AI" on messages that were clearly written by hand.
+ *
+ * If the model omits the authored line (older models or drift), fall back
+ * to the prompt-only block that predated the Authored field.
+ */
+function buildAuthoredBlock(summary: Summary): HTMLElement | undefined {
+  const { authored, authoredReason, reversedPrompt } = summary;
+
+  if (!authored && reversedPrompt) {
+    return buildLegacyPromptBlock(reversedPrompt);
+  }
+  if (!authored) return undefined;
+
+  const block = document.createElement('section');
+  block.className = 'df-prompt';
+  block.dataset.authored = authored;
+
+  const label = document.createElement('p');
+  label.className = 'df-prompt-label';
+  const icon = document.createElement('span');
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = AUTHORED_ICONS[authored];
+  const labelText = document.createElement('span');
+  labelText.textContent =
+    authored === 'human'
+      ? AUTHORED_LABELS.human
+      : AUTHORED_PROMPT_LABELS[authored];
+  label.appendChild(icon);
+  label.appendChild(labelText);
+  block.appendChild(label);
+
+  if (authored === 'human') {
+    if (authoredReason) {
+      const reason = document.createElement('p');
+      reason.className = 'df-prompt-text df-authored-reason';
+      reason.textContent = authoredReason;
+      block.appendChild(reason);
+    }
+    return block;
+  }
+
+  if (reversedPrompt) {
+    const text = document.createElement('p');
+    text.className = 'df-prompt-text';
+    text.textContent = formatReversedPrompt(reversedPrompt);
+    block.appendChild(text);
+  }
+  return block;
+}
+
+function buildLegacyPromptBlock(reversedPrompt: string): HTMLElement {
   const block = document.createElement('section');
   block.className = 'df-prompt';
 

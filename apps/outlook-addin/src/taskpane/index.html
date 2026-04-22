@@ -54,7 +54,10 @@
         <button id="run" type="button" class="primary">De-Fluff this email</button>
         <div id="result" class="result" hidden>
           <section id="prompt-block" class="prompt-block" hidden>
-            <p class="prompt-label"><span aria-hidden="true">💭</span> They probably asked an AI</p>
+            <p class="prompt-label">
+              <span aria-hidden="true" id="prompt-icon">💭</span>
+              <span id="prompt-label-text">Authorship</span>
+            </p>
             <p class="prompt-text" id="prompt-text"></p>
           </section>
           <div id="verdict-row" class="verdict" hidden>

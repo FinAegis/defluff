@@ -33,7 +33,18 @@ export type ProviderConfig =
 
 export type Verdict = 'actionable' | 'response-needed' | 'fyi' | 'noise';
 
+/**
+ * Who authored the email. The model decides from visible signals in the
+ * message text. "human" means the reversed prompt is skipped — there is
+ * nothing to reverse.
+ */
+export type Authored = 'ai' | 'ai-assisted' | 'human';
+
 export interface Summary {
+  /** Authorship classification: AI, AI-assisted, or plainly human. */
+  authored?: Authored;
+  /** One-sentence reasoning citing the concrete signals behind `authored`. */
+  authoredReason?: string;
   /** Best-guess imperative the sender probably gave an AI. The reversal. */
   reversedPrompt?: string;
   /** Verdict classifying how much attention the email deserves. */

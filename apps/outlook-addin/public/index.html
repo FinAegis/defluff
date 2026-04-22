@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="google-site-verification" content="ZMtyQh5wX-JQJ_siMM0QNaIVQMhda0nl2IeUjCZ9RNY" />
   <title>Defluff — strip AI-generated fluff from emails</title>
-  <meta name="description" content="Chrome extension that replaces AI-padded Gmail and LinkedIn messages with 3–5 bullets of real intent. BYOK, zero retention, open source." />
+  <meta name="description" content="Chrome extension that detects whether an email was written by AI, AI-polished, or by a human — and extracts 3–5 bullets of real intent in the email's own language. BYOK, zero retention, open source." />
   <meta property="og:title" content="Defluff — strip AI fluff from emails" />
   <meta property="og:description" content="AI wrote this email. Have AI read it. Zero servers. Your keys, your models." />
   <meta property="og:image" content="hero.jpg" />
@@ -80,26 +80,83 @@
     }
     .hero h1 { max-width: 720px; margin-left: auto; margin-right: auto; }
     .hero .lede { margin-left: auto; margin-right: auto; }
-    .ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 40px; }
+    .ctas { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 14px; }
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 12px 22px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid var(--border);
       background: var(--bg);
       color: var(--fg);
       text-decoration: none;
       font-size: 15px;
       font-weight: 500;
-      transition: background .12s ease, box-shadow .12s ease;
+      transition: background .12s ease, box-shadow .12s ease, transform .12s ease;
     }
     .btn:hover { background: color-mix(in srgb, var(--accent) 6%, var(--bg)); box-shadow: var(--shadow); }
-    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-    .btn.primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); box-shadow: var(--shadow); }
-    .btn .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
-    .btn.primary .tag { color: rgba(255,255,255,.8); }
+    .btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      padding: 13px 26px;
+      font-size: 15.5px;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(26, 115, 232, .18);
+    }
+    .btn.primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      box-shadow: 0 2px 4px rgba(26, 115, 232, .24);
+      transform: translateY(-1px);
+    }
+    .btn.secondary { background: var(--panel); }
+    .btn.secondary:hover { background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+    .btn .tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--muted) 10%, transparent);
+    }
+    .btn.primary .tag { color: rgba(255,255,255,.85); background: rgba(255,255,255,.16); }
+
+    /* Tagline + tertiary support links sit below the CTAs so the button row
+       is cleanly a CTA row (install / install / install) and everything
+       lower-stakes (license, source, support) becomes quiet text. */
+    .tagline {
+      margin: 0 auto 10px;
+      max-width: 540px;
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .tagline strong { color: var(--fg); font-weight: 600; }
+    .support-links {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      flex-wrap: wrap;
+      margin: 0 0 28px;
+      font-size: 14px;
+    }
+    .support-links a {
+      color: var(--muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 2px;
+    }
+    .support-links a:hover { color: var(--accent); }
+    .support-links a.coffee:hover { color: #b9731a; }
+    @media (prefers-color-scheme: dark) {
+      .support-links a.coffee:hover { color: #fdd663; }
+    }
     .hero img { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
     section.band {
       padding: 56px 0;
@@ -197,8 +254,9 @@
     .note {
       font-size: 12px;
       color: var(--muted);
-      margin-top: -20px;
-      margin-bottom: 24px;
+      margin: 0 auto 28px;
+      max-width: 560px;
+      text-align: center;
     }
     @media (max-width: 600px) {
       h1 { font-size: 32px; }
@@ -227,20 +285,30 @@
     <div class="container">
       <h1>AI wrote this email.<br /><span class="pad">Have AI read it.</span></h1>
       <p class="lede">
-        One-click Chrome, Edge, and Firefox extension that replaces AI-padded messages in Gmail and LinkedIn with 3–5 bullets of what the sender actually wants. Zero servers. Your keys, your models, your data.
+        One-click extension for Gmail, Outlook, and LinkedIn. Detects whether a message was written by AI, polished by AI, or by a human — then extracts 3–5 bullets of what the sender actually wants, in the email's own language. Zero servers. Your keys, your models, your data.
       </p>
       <div class="ctas">
         <a class="btn primary" href="https://chromewebstore.google.com/detail/focbcpblgbbebppigdalpajdgmkmejfo">
           Add to Chrome <span class="tag">v0.1</span>
         </a>
-        <a class="btn" href="https://github.com/FinAegis/defluff/tree/main/apps/claude-skill#readme">
-          Claude Code plugin <span class="tag">Claude Code</span>
+        <a class="btn secondary" href="https://github.com/FinAegis/defluff/tree/main/apps/claude-skill#readme">
+          Claude Code plugin <span class="tag">Claude</span>
         </a>
-        <a class="btn" href="https://clawhub.ai/yozaz/defluff">
+        <a class="btn secondary" href="https://clawhub.ai/yozaz/defluff">
           OpenClaw skill <span class="tag">ClawHub</span>
         </a>
-        <a class="btn" href="https://github.com/FinAegis/defluff">
-          Source <span class="tag">MIT</span>
+      </div>
+      <p class="tagline">
+        <strong>Free, forever.</strong> MIT-licensed, BYOK, zero retention — built for the vibe-coding community.
+      </p>
+      <div class="support-links">
+        <a href="https://github.com/FinAegis/defluff" aria-label="View source on GitHub">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          View source
+        </a>
+        <a class="coffee" href="https://buymeacoffee.com/finaegis" target="_blank" rel="noopener">
+          <span aria-hidden="true">☕</span>
+          Buy us a coffee
         </a>
       </div>
       <p class="note">Chrome Web Store review in progress — the install link may show "unavailable" until approval lands. Firefox and Edge mirrors coming next.</p>
@@ -263,7 +331,7 @@
         </div>
         <div class="step">
           <h3>Click De-Fluff</h3>
-          <p>The email collapses into 3–5 bullets, a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE), and the prompt the sender probably asked an AI to write.</p>
+          <p>The email collapses into an authorship badge (<em>Written by AI</em>, <em>AI-polished</em>, or <em>Human-written</em>), a verdict (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE), and 3–5 bullets of real intent — all in the email's own language. When AI wrote it, you also see the prompt behind it.</p>
         </div>
       </div>
     </div>
@@ -401,6 +469,7 @@
         <a href="https://github.com/FinAegis/defluff/blob/main/PRIVACY.md">Privacy</a>
         <a href="https://github.com/FinAegis/defluff/blob/main/SECURITY.md">Security</a>
         <a href="https://github.com/FinAegis/defluff/issues">Issues</a>
+        <a href="https://buymeacoffee.com/finaegis" target="_blank" rel="noopener">Buy us a coffee ☕</a>
       </div>
     </div>
   </footer>

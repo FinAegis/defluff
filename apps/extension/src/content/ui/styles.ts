@@ -241,9 +241,6 @@ export const CONTENT_CSS = `
   border-color: var(--df-error-accent);
   color: var(--df-error-accent);
 }
-.df-thread-verdict[data-thread-verdict="mixed"] {
-  color: var(--df-verdict-fyi);
-}
 .df-thread-verdict-icon { font-size: 14px; font-weight: 700; }
 .df-thread-verdict-label {
   font-weight: 700;

@@ -91,12 +91,14 @@ export interface ThreadMessage {
 }
 
 /**
- * Thread-level verdict. Distinct from the per-message Verdict space
- * (ACTIONABLE / RESPONSE-NEEDED / FYI / NOISE) because it describes the
- * conversation as a whole — in particular, scam progressions where
- * individual messages look fine but the sequence is not.
+ * Thread-level verdict. Two states, deliberately: LEGIT for real
+ * conversations and SCAM for progressions where individual messages look
+ * fine but the sequence is not. An older "MIXED" state (mostly legit with
+ * a stray noise message) was dropped because it duplicated what the
+ * per-message NOISE tag already communicates and left the reader with no
+ * decision to make.
  */
-export type ThreadVerdict = 'legit' | 'mixed' | 'scam';
+export type ThreadVerdict = 'legit' | 'scam';
 
 export interface ThreadMessageSummary {
   sender?: string;

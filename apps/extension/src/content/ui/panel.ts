@@ -30,13 +30,11 @@ export interface PanelOptions {
 
 const THREAD_VERDICT_LABELS: Record<ThreadVerdict, string> = {
   legit: 'Legit thread',
-  mixed: 'Mixed thread',
   scam: 'Scam progression',
 };
 
 const THREAD_VERDICT_ICONS: Record<ThreadVerdict, string> = {
   legit: '✓',
-  mixed: '△',
   scam: '✕',
 };
 

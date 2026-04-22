@@ -180,7 +180,6 @@ function stripQuotes(s: string): string {
 
 const THREAD_VERDICT_MAP: Record<string, ThreadVerdict> = {
   LEGIT: 'legit',
-  MIXED: 'mixed',
   SCAM: 'scam',
 };
 
@@ -322,7 +321,10 @@ function extractThreadVerdict(
   rest: string,
 ): { verdict: ThreadVerdict; reason?: string } | undefined {
   const upper = rest.toUpperCase();
-  for (const key of ['LEGIT', 'MIXED', 'SCAM']) {
+  // MIXED is intentionally absent — legacy responses that emit it fall
+  // through and the thread simply has no thread-level verdict, which is
+  // the right behaviour (the per-message NOISE tags carry the signal).
+  for (const key of ['LEGIT', 'SCAM']) {
     if (!upper.startsWith(key)) continue;
     const boundary = upper.charAt(key.length);
     if (boundary !== '' && /[A-Z0-9]/.test(boundary)) continue;

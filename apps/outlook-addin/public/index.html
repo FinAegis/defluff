@@ -213,6 +213,18 @@
       background: color-mix(in srgb, var(--muted) 10%, transparent);
     }
     .btn.primary .tag { color: rgba(255,255,255,.85); background: rgba(255,255,255,.16); }
+    .btn[aria-disabled="true"] {
+      background: color-mix(in srgb, var(--muted) 12%, var(--panel));
+      color: var(--muted);
+      border-color: var(--border);
+      box-shadow: none;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .btn[aria-disabled="true"] .tag {
+      color: var(--muted);
+      background: color-mix(in srgb, var(--muted) 14%, transparent);
+    }
 
     /* Tagline + tertiary support links sit below the CTAs so the button row
        is cleanly a CTA row (install / install / install) and everything
@@ -247,6 +259,42 @@
       .support-links a.coffee:hover { color: #fdd663; }
     }
     .hero img { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+    .install-source {
+      margin: 4px auto 22px;
+      max-width: 680px;
+      text-align: left;
+      font-size: 14px;
+      color: var(--fg);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+    }
+    .install-source > summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--accent);
+      list-style: none;
+      padding: 4px 0;
+    }
+    .install-source > summary::-webkit-details-marker { display: none; }
+    .install-source > summary::before {
+      content: "▸ ";
+      display: inline-block;
+      transition: transform .15s ease;
+      color: var(--muted);
+    }
+    .install-source[open] > summary::before { content: "▾ "; }
+    .install-source ol { margin: 12px 0 6px; padding-left: 22px; }
+    .install-source ol li { margin-bottom: 8px; }
+    .install-source code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12.5px;
+      background: color-mix(in srgb, var(--muted) 12%, transparent);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .install-source p { margin: 10px 0 2px; color: var(--muted); }
     section.band {
       padding: 56px 0;
       border-top: 1px solid var(--border);
@@ -518,8 +566,11 @@
         One-click extension for Gmail, Outlook, and LinkedIn. Detects whether a message was written by AI, polished by AI, or by a human — then extracts 3–5 bullets of what the sender actually wants, in the email's own language. Zero servers. Your keys, your models, your data.
       </p>
       <div class="ctas">
-        <a class="btn primary" href="https://chromewebstore.google.com/detail/focbcpblgbbebppigdalpajdgmkmejfo">
-          Add to Chrome <span class="tag">v0.1</span>
+        <span class="btn primary" aria-disabled="true" role="link" aria-label="Add to Chrome — pending Chrome Web Store review">
+          Add to Chrome <span class="tag">Pending review</span>
+        </span>
+        <a class="btn primary" href="https://github.com/FinAegis/defluff/tree/main/apps/extension#development">
+          Install from source <span class="tag">v0.1</span>
         </a>
         <a class="btn secondary" href="https://github.com/FinAegis/defluff/tree/main/apps/claude-skill#readme">
           Claude Code plugin <span class="tag">Claude</span>
@@ -541,7 +592,17 @@
           Buy us a coffee
         </a>
       </div>
-      <p class="note">Chrome Web Store review in progress — the install link may show "unavailable" until approval lands. Firefox and Edge mirrors coming next.</p>
+      <p class="note">Chrome Web Store submission is in review — until it's approved, install from source with the steps below. Firefox and Edge mirrors follow Chrome approval.</p>
+      <details class="install-source">
+        <summary>Install from source (until Chrome Web Store approval)</summary>
+        <ol>
+          <li>Clone: <code>git clone https://github.com/FinAegis/defluff.git &amp;&amp; cd defluff</code></li>
+          <li>Build: <code>pnpm install &amp;&amp; pnpm --filter @defluff/extension build</code></li>
+          <li>Open <code>chrome://extensions</code>, enable <strong>Developer mode</strong>, click <strong>Load unpacked</strong>, and select <code>apps/extension/dist</code>.</li>
+          <li>Click the extension's <strong>Details → Extension options</strong> and paste an Anthropic / OpenAI / Gemini API key (or point it at a local Ollama).</li>
+        </ol>
+        <p>Edge: same flow at <code>edge://extensions</code>. Firefox temporary install: <code>about:debugging</code> → <em>This Firefox</em> → <strong>Load Temporary Add-on</strong> → pick <code>apps/extension/dist/manifest.json</code>.</p>
+      </details>
       <div class="hero-shot">
         <img src="hero.jpg" alt="Defluff summarizing an SEO sales pitch: NOISE verdict, a one-line reversed prompt, and two specifics — no fluff." />
         <span class="stamp" aria-hidden="true">Defluffed</span>

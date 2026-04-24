@@ -56,6 +56,23 @@ because none exists.
   The provider's servers may retain your data according to that provider's
   own retention policy — see below.
 
+## Data-category disclosure (Firefox AMO transparency)
+
+Starting in 2025, Mozilla requires every Firefox extension to list the
+user-data categories it handles so the install dialog can show them
+upfront. Defluff declares one category:
+
+- **personalCommunications** — the body of the email (or LinkedIn message)
+  you explicitly click *De-Fluff* on. It is sent directly from your
+  browser to the LLM provider you configured. No copy transits any
+  Defluff-operated server, because none exists; zero retention on our
+  side is a property of the architecture, not of a policy promise.
+
+We deliberately do **not** declare `authenticationInfo` for your LLM API
+key: you enter it yourself, it stays in `chrome.storage.sync` on your
+machine, and it's sent only to the provider you chose, as that provider's
+own auth header — we never collect or transmit it anywhere else.
+
 ## Third parties: your chosen LLM provider
 
 When you click De-Fluff, the message body is sent to the provider you

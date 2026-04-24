@@ -20,7 +20,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "icons": "node scripts/generate-icons.mjs",
-    "skill:publish": "node scripts/publish-skill.mjs"
+    "skill:publish": "node scripts/publish-skill.mjs",
+    "package:chrome": "pnpm --filter @defluff/extension package"
   },
   "devDependencies": {
     "sharp": "^0.34.5"

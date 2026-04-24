@@ -1,6 +1,6 @@
 {
   "name": "@defluff/extension",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Defluff browser extension for Gmail and Outlook Web.",
   "type": "module",
@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "package": "node ../../scripts/package-extension.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit"
   },

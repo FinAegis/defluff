@@ -51,7 +51,7 @@ type Manifest = ManifestV3Export & {
 export default defineManifest({
   manifest_version: 3,
   name: 'Defluff',
-  version: '0.1.0',
+  version: '0.1.1',
   description: 'Strip AI-generated padding from emails. Your keys, your models, no servers.',
   // Firefox/AMO requires a stable per-extension id declared in the manifest
   // (Chrome derives its id from the crx signature). Using an email-shaped id

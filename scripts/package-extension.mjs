@@ -9,7 +9,7 @@
 
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createReadStream } from 'node:fs';
-import { readFile, rm, stat } from 'node:fs/promises';
+import { readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,6 +35,20 @@ if (manifest.version !== version) {
     `Version mismatch: package.json is ${version} but built manifest is ${manifest.version}. ` +
       `Update apps/extension/manifest.config.ts to match package.json.`,
   );
+}
+
+// Inject the Firefox-compatible `background.scripts` fallback. @crxjs/vite-
+// plugin strips any `scripts` key we declare in manifest.config.ts (it only
+// emits the Chrome-style `service_worker`). Without this fallback, AMO's
+// linter rejects the upload with:
+//   "Unsupported /background/service_worker manifest property used without
+//    /background/scripts ... as Firefox-compatible fallback."
+// Chrome ignores `scripts` when `service_worker` is present; Firefox reads
+// `scripts` as an event-page entry. `type: "module"` applies to both.
+if (manifest.background?.service_worker && !manifest.background.scripts) {
+  manifest.background.scripts = [manifest.background.service_worker];
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+  console.log('→ Patched dist/manifest.json: added background.scripts fallback for Firefox');
 }
 
 // Overwrite any previous zip at this version so the script is idempotent.

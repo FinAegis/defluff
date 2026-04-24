@@ -51,7 +51,7 @@ type Manifest = ManifestV3Export & {
 export default defineManifest({
   manifest_version: 3,
   name: 'Defluff',
-  version: '0.1.1',
+  version: '0.1.2',
   description: 'Strip AI-generated padding from emails. Your keys, your models, no servers.',
   // Firefox/AMO requires a stable per-extension id declared in the manifest
   // (Chrome derives its id from the crx signature). Using an email-shaped id
@@ -69,6 +69,11 @@ export default defineManifest({
     default_icon: ICONS,
   },
   options_ui: { page: 'src/options/index.html', open_in_tab: true },
+  // Firefox needs `background.scripts` as a fallback for `service_worker`,
+  // but @crxjs/vite-plugin strips any `scripts` key we declare here (it only
+  // emits Chrome's `service_worker`). The Firefox-compatible fallback is
+  // injected into dist/manifest.json at package time —
+  // see scripts/package-extension.mjs.
   background: { service_worker: 'src/background.ts', type: 'module' },
   commands: {
     defluff_active: {

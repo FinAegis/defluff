@@ -82,6 +82,18 @@ Prose collapses into bullets.
 <tr>
 <td>
 
+**[Chrome Web Store](https://chromewebstore.google.com/detail/defluff/focbcpblgbbebppigdalpajdgmkmejfo)** — browser extension for Gmail / Outlook Web / LinkedIn Messaging
+
+</td>
+<td>
+
+[**Add to Chrome →**](https://chromewebstore.google.com/detail/defluff/focbcpblgbbebppigdalpajdgmkmejfo)
+
+</td>
+</tr>
+<tr>
+<td>
+
 **[Claude Code plugin](apps/claude-skill#readme)** — Anthropic agent surface
 
 </td>
@@ -112,7 +124,6 @@ openclaw skills install defluff
 
 ### Coming soon (pending live-testing — track in [#7](https://github.com/FinAegis/defluff/issues/7))
 
-- Chrome Web Store — browser extension for Gmail / Outlook Web / LinkedIn Messaging
 - Edge Add-ons — same build
 - Firefox AMO — same build
 - Microsoft AppSource — Outlook add-in (desktop + web)

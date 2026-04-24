@@ -130,7 +130,7 @@ Lead with "your organization's CISO already banned Grammarly and Otter." Skip th
 - [ ] 20-second demo video (no voiceover; one click, reversed prompt + verdict + bullets, done)
 - [ ] 2–3 variant screenshots: one **ACTIONABLE** (work email with deadline), one **RESPONSE-NEEDED** (colleague asking a question), one **NOISE** (✓ sales pitch, `docs/screenshot.jpg`). Chrome Web Store wants 3–5 promo shots at 1280×800.
 - [ ] Landing page live
-- [ ] Chrome Web Store listing approved
+- [x] Chrome Web Store listing approved — https://chromewebstore.google.com/detail/defluff/focbcpblgbbebppigdalpajdgmkmejfo
 - [ ] Edge Add-ons listing approved
 - [ ] Firefox AMO submission in queue
 - [ ] AppSource submission in queue

@@ -46,6 +46,14 @@ type Manifest = ManifestV3Export & {
   browser_specific_settings?: {
     gecko?: { id: string; strict_min_version?: string };
   };
+  // Firefox AMO (2025+ submissions) requires an explicit declaration of
+  // which user-data categories the extension handles. Reviewed at upload
+  // time; missing field rejects the submission.
+  browser_specific_settings_gecko_only?: never;
+  data_collection_permissions?: {
+    required?: readonly string[];
+    optional?: readonly string[];
+  };
 };
 
 export default defineManifest({
@@ -64,6 +72,20 @@ export default defineManifest({
     },
   },
   icons: ICONS,
+  // Firefox/AMO transparency requirement (2025+). We declare the category
+  // the extension routes to third parties so users see it in the install
+  // dialog. `personalCommunications` = the email body the user asks us to
+  // summarize; it's sent directly from their browser to the LLM provider
+  // they configured (Anthropic / OpenAI / Gemini / self-hosted Ollama).
+  // Zero retention beyond that is a function of architecture, not of this
+  // declaration — we never see the data on any server we operate.
+  // The user's API key is stored locally in chrome.storage.sync and passed
+  // through to their chosen provider as auth; not declared here because
+  // the user supplies it rather than us collecting it.
+  // Chrome ignores this top-level field; Firefox reads it.
+  data_collection_permissions: {
+    required: ['personalCommunications'],
+  },
   action: {
     default_title: 'Defluff',
     default_icon: ICONS,

@@ -20,6 +20,7 @@ export default defineConfig(({ command }) => ({
       input: {
         taskpane: resolve(__dirname, 'src/taskpane/index.html'),
         commands: resolve(__dirname, 'src/commands/commands.html'),
+        playground: resolve(__dirname, 'playground/index.html'),
       },
     },
   },

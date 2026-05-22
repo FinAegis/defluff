@@ -301,6 +301,18 @@
     }
     section.band.alt { background: var(--panel); }
     section.band h2 { margin-bottom: 8px; }
+    .playground-embed {
+      width: 100%;
+      height: 720px;
+      margin-top: 24px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      box-shadow: var(--shadow);
+    }
+    @media (max-width: 600px) {
+      .playground-embed { height: 760px; }
+    }
     .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px; counter-reset: step; }
     .step {
       counter-increment: step;
@@ -550,6 +562,7 @@
         <span>Defluff</span>
       </a>
       <nav>
+        <a href="#try">Try it</a>
         <a href="#how">How it works</a>
         <a href="#surfaces">Works with</a>
         <a href="#privacy">Privacy</a>
@@ -607,9 +620,27 @@
     </div>
   </section>
 
+  <section id="try" class="band alt">
+    <div class="container">
+      <p class="section-overline"><span class="mark">§</span>01 · Try it now</p>
+      <h2>Try it in your browser</h2>
+      <p class="lede">
+        Paste an email, bring your own API key, see the bullets. The playground
+        calls your provider straight from this page — nothing reaches a FinAegis
+        server. <a href="playground/">Open the full playground ↗</a>
+      </p>
+      <iframe
+        class="playground-embed"
+        src="playground/"
+        title="Defluff playground — paste an email and extract its intent"
+        loading="lazy"
+      ></iframe>
+    </div>
+  </section>
+
   <section id="how" class="band">
     <div class="container">
-      <p class="section-overline"><span class="mark">§</span>01 · How it works</p>
+      <p class="section-overline"><span class="mark">§</span>02 · How it works</p>
       <h2>How it works</h2>
       <p class="lede">Three steps, about sixty seconds to set up. No account.</p>
       <div class="steps">
@@ -631,7 +662,7 @@
 
   <section id="surfaces" class="band alt">
     <div class="container">
-      <p class="section-overline"><span class="mark">§</span>02 · Where it works</p>
+      <p class="section-overline"><span class="mark">§</span>03 · Where it works</p>
       <h2>Where it works</h2>
       <p class="lede">Primary targets are Gmail and LinkedIn Messaging. Outlook Web is supported. The Office.js desktop add-in is available as a preview.</p>
       <ul class="rail">
@@ -673,7 +704,7 @@
 
   <section class="band">
     <div class="container">
-      <p class="section-overline"><span class="mark">§</span>03 · Agent surfaces</p>
+      <p class="section-overline"><span class="mark">§</span>04 · Agent surfaces</p>
       <div class="skill-callout">
         <h2>Living in an agent? There's a skill.</h2>
         <p>
@@ -694,7 +725,7 @@
 
   <section id="privacy" class="band alt">
     <div class="container">
-      <p class="section-overline"><span class="mark">§</span>04 · Privacy</p>
+      <p class="section-overline"><span class="mark">§</span>05 · Privacy</p>
       <h2>The privacy sell</h2>
       <p class="lede">
         Defluff has no backend. Your email content and your API key never leave your browser for infrastructure we run. Not a policy — the architecture.
@@ -762,7 +793,7 @@
 
   <section class="band">
     <div class="container">
-      <p class="section-overline"><span class="mark">§</span>05 · Proof points</p>
+      <p class="section-overline"><span class="mark">§</span>06 · Proof points</p>
       <h2>Proof points</h2>
       <ul class="manifesto">
         <li class="manifesto-item">

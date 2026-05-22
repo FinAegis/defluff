@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Defluff Playground — paste an email, get the point</title>
+    <meta
+      name="description"
+      content="Try Defluff in your browser. Paste any email, bring your own API key — nothing is sent to a FinAegis server."
+    />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Defluff Playground</h1>
+        <p class="lede" id="status">Loading…</p>
+      </header>
+
+      <section id="config" hidden>
+        <h2>Bring your own key</h2>
+        <p class="trust">
+          Your key and the text you paste stay in this browser. They go straight
+          to the provider you pick — never to a FinAegis server. Open your
+          browser's DevTools → Network tab and watch: the only request is to your
+          provider.
+          <a href="https://github.com/FinAegis/defluff" target="_blank" rel="noopener">Read the source.</a>
+        </p>
+
+        <label>
+          Provider
+          <select id="kind">
+            <option value="anthropic">Anthropic Claude</option>
+            <option value="openai">OpenAI</option>
+            <option value="gemini">Google Gemini</option>
+          </select>
+        </label>
+
+        <label>
+          API key
+          <input id="apikey" type="password" autocomplete="off" placeholder="paste your key" />
+        </label>
+
+        <label>
+          Model <small>(optional — leave blank for the provider default)</small>
+          <input id="model" type="text" placeholder="default model for the provider" />
+        </label>
+
+        <div class="actions">
+          <button id="save" type="button">Save key</button>
+          <button id="clear" type="button" class="secondary">Clear</button>
+          <span id="save-status" class="status-msg"></span>
+        </div>
+      </section>
+
+      <section id="work" hidden>
+        <label>
+          Paste an email
+          <textarea
+            id="input"
+            rows="12"
+            spellcheck="false"
+            placeholder="Paste the email body here…"
+          ></textarea>
+        </label>
+        <button id="run" type="button" class="primary">Defluff</button>
+        <div id="result" class="result" hidden>
+          <section id="prompt-block" class="prompt-block" hidden>
+            <p class="prompt-label">
+              <span aria-hidden="true" id="prompt-icon">💭</span>
+              <span id="prompt-label-text">Authorship</span>
+            </p>
+            <p class="prompt-text" id="prompt-text"></p>
+          </section>
+          <div id="verdict-row" class="verdict" hidden>
+            <span class="verdict-icon" id="verdict-icon" aria-hidden="true"></span>
+            <span class="verdict-label" id="verdict-label"></span>
+            <span class="verdict-reason" id="verdict-reason"></span>
+          </div>
+          <p class="section-label" id="bullets-label" hidden>Specifics</p>
+          <ul id="bullets"></ul>
+        </div>
+        <div id="error" class="error" hidden></div>
+        <p class="settings-link">
+          <button id="edit-config" type="button" class="link">Change provider or key…</button>
+        </p>
+      </section>
+    </main>
+    <script type="module" src="/src/playground/main.ts"></script>
+  </body>
+</html>

@@ -26,13 +26,9 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
-// Toolbar icon click opens the options page. With no default_popup set, this
-// listener fires on every click. The options UI is the "settings" surface —
-// summarization itself lives on the inline De-Fluff button injected into Gmail
-// and Outlook Web, not the toolbar action.
-chrome.action.onClicked.addListener(() => {
-  void chrome.runtime.openOptionsPage();
-});
+// The toolbar icon opens the paste-and-Defluff popup (action.default_popup in
+// manifest.config.ts). Chrome does not fire chrome.action.onClicked when a
+// popup is set, so there is no onClicked handler.
 
 // Keyboard shortcut (Ctrl/Cmd+Shift+D) triggers the in-view De-Fluff button
 // on the active tab. Content script finds the best target by proximity to

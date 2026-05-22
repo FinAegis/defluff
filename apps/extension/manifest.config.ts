@@ -89,6 +89,9 @@ export default defineManifest({
   action: {
     default_title: 'Defluff',
     default_icon: ICONS,
+    // Clicking the toolbar icon opens the paste-and-Defluff popup. The popup
+    // links to the options page for provider/host settings.
+    default_popup: 'src/popup/index.html',
   },
   options_ui: { page: 'src/options/index.html', open_in_tab: true },
   // Firefox needs `background.scripts` as a fallback for `service_worker`,
